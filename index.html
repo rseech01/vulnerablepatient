@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vulnerable Patient Readmission Checker + 211 Support</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body {
+      margin: 0;
+      padding: 16px;
+      background: #f5f5f7;
+      color: #222;
+    }
+    .app-container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 16px;
+    }
+    header h1 {
+      margin: 0 0 4px;
+      font-size: 1.6rem;
+    }
+    header p {
+      margin: 4px 0 8px;
+      font-size: 0.95rem;
+    }
+    .top-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .language-select,
+    .county-select {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .language-select label,
+    .county-select label {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    select {
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 0.9rem;
+      background: #fff;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin: 12px 0 20px;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-emoji {
+      font-size: 1.6rem;
+    }
+    .card-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .card-options {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .card-options label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .card-options input[type="radio"] {
+      accent-color: #007aff;
+    }
+    .actions {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #007aff;
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    .result,
+    .resources {
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-top: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      font-size: 0.95rem;
+    }
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .pill-low {
+      background: #e5f8e9;
+      color: #1d7a35;
+    }
+    .pill-medium {
+      background: #fff6e5;
+      color: #b06400;
+    }
+    .pill-high {
+      background: #ffe5e5;
+      color: #b00020;
+    }
+    .disclaimer {
+      font-size: 0.8rem;
+      color: #666;
+      margin-top: 8px;
+    }
+    .resources-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .resources-title {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .resources-title span.icon {
+      font-size: 1.2rem;
+    }
+    .resources-meta {
+      font-size: 0.85rem;
+      color: #555;
+      text-align: right;
+    }
+    .resource-list {
+      margin: 10px 0 0;
+      padding-left: 18px;
+      font-size: 0.9rem;
+    }
+    .resource-list li {
+      margin-bottom: 4px;
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      background: #f2f2f7;
+      margin-left: 4px;
+    }
+    a.resource-link {
+      color: #007aff;
+      text-decoration: none;
+    }
+    a.resource-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1 data-i18n="title">Vulnerable Patient Readmission Checker</h1>
+      <p data-i18n="subtitle">
+        Answer a few questions to estimate risk for returning to the hospital. This is a simple screening tool, not a diagnosis.
+      </p>
+      <div class="top-row">
+        <div class="language-select">
+          <label for="language" data-i18n="languageLabel">Language:</label>
+          <select id="language">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="ht">Kreyòl Ayisyen</option>
+          </select>
+        </div>
+        <div class="county-select">
+          <label for="county" data-i18n="countyLabel">Where do you live?</label>
+          <select id="county">
+            <option value="miami">Miami-Dade / Monroe (211 Miami)</option>
+            <option value="broward">Broward (211 Broward)</option>
+            <option value="palmbeach">Palm Beach / Treasure Coast (211 Palm Beach)</option>
+            <option value="other">Other South Florida / Not sure</option>
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <form id="risk-form">
+      <div class="cards">
+        <!-- Q1 Polypharmacy -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-emoji">💊</div>
+            <div class="card-title" data-i18n="q1">
+              How many different medicines do you take every day?
+            </div>
+          </div>
+          <div class="card-options">
+            <label>
+              <input type="radio" name="q1" value="0" />
+              <span data-i18n="q1o1">0–3 medicines</span>
+            </label>
+            <label>
+              <input type="radio" name="q1" value="1" />
+              <span data-i18n="q1o2">4–6 medicines</span>
+            </label>
+            <label>
+              <input type="radio" name="q1" value="2" />
+              <span data-i18n="q1o3">7 or more medicines</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Q2 Literacy -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-emoji">📖</div>
+            <div class="card-title" data-i18n="q2">
+              Do you have trouble reading or understanding written health information?
+            </div>
+          </div>
+          <div class="card-options">
+            <label>
+              <input type="radio" name="q2" value="0" />
+              <span data-i18n="q2o1">No, I understand it well</span>
+            </label>
+            <label>
+              <input type="radio" name="q2" value="1" />
+              <span data-i18n="q2o2">Sometimes</span>
+            </label>
+            <label>
+              <input type="radio" name="q2" value="2" />
+              <span data-i18n="q2o3">Yes, I often have trouble</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Q3 Compliance -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-emoji">⏰</div>
+            <div class="card-title" data-i18n="q3">
+              How often do you miss medicines or medical appointments?
+            </div>
+          </div>
+          <div class="card-options">
+            <label>
+              <input type="radio" name="q3" value="0" />
+              <span data-i18n="q3o1">Almost never</span>
+            </label>
+            <label>
+              <input type="radio" name="q3" value="1" />
+              <span data-i18n="q3o2">Sometimes</span>
+            </label>
+            <label>
+              <input type="radio" name="q3" value="2" />
+              <span data-i18n="q3o3">Often</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Q4 Transportation -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-emoji">🚗</div>
+            <div class="card-title" data-i18n="q4">
+              How easy is it for you to get to your clinic, hospital, or pharmacy?
+            </div>
+          </div>
+          <div class="card-options">
+            <label>
+              <input type="radio" name="q4" value="0" />
+              <span data-i18n="q4o1">Very easy</span>
+            </label>
+            <label>
+              <input type="radio" name="q4" value="1" />
+              <span data-i18n="q4o2">Sometimes hard</span>
+            </label>
+            <label>
+              <input type="radio" name="q4" value="2" />
+              <span data-i18n="q4o3">Very hard / I usually can’t</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Q5 Support network -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-emoji">👪</div>
+            <div class="card-title" data-i18n="q5">
+              Who helps you with your health care at home?
+            </div>
+          </div>
+          <div class="card-options">
+            <label>
+              <input type="radio" name="q5" value="0" />
+              <span data-i18n="q5o1">Strong support (family, friends, caregiver)</span>
+            </label>
+            <label>
+              <input type="radio" name="q5" value="1" />
+              <span data-i18n="q5o2">Some support</span>
+            </label>
+            <label>
+              <input type="radio" name="q5" value="2" />
+              <span data-i18n="q5o3">Little or no support</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Q6 Prior utilization -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-emoji">🏥</div>
+            <div class="card-title" data-i18n="q6">
+              In the last 6 months, how many times were you in the ER or hospital?
+            </div>
+          </div>
+          <div class="card-options">
+            <label>
+              <input type="radio" name="q6" value="0" />
+              <span data-i18n="q6o1">0 times</span>
+            </label>
+            <label>
+              <input type="radio" name="q6" value="1" />
+              <span data-i18n="q6o2">1–2 times</span>
+            </label>
+            <label>
+              <input type="radio" name="q6" value="2" />
+              <span data-i18n="q6o3">3 or more times</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Q7 Housing -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-emoji">🏠</div>
+            <div class="card-title" data-i18n="q7">
+              Do you have a stable place to live?
+            </div>
+          </div>
+          <div class="card-options">
+            <label>
+              <input type="radio" name="q7" value="0" />
+              <span data-i18n="q7o1">Yes, stable housing</span>
+            </label>
+            <label>
+              <input type="radio" name="q7" value="1" />
+              <span data-i18n="q7o2">Sometimes unsure</span>
+            </label>
+            <label>
+              <input type="radio" name="q7" value="2" />
+              <span data-i18n="q7o3">No, housing is unstable or I am homeless</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Q8 Confidence / self-management -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-emoji">💪</div>
+            <div class="card-title" data-i18n="q8">
+              How confident do you feel managing your health at home?
+            </div>
+          </div>
+          <div class="card-options">
+            <label>
+              <input type="radio" name="q8" value="0" />
+              <span data-i18n="q8o1">Very confident</span>
+            </label>
+            <label>
+              <input type="radio" name="q8" value="1" />
+              <span data-i18n="q8o2">Somewhat confident</span>
+            </label>
+            <label>
+              <input type="radio" name="q8" value="2" />
+              <span data-i18n="q8o3">Not confident</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" id="calculate" data-i18n="calculate">
+          Calculate risk score
+        </button>
+        <span class="disclaimer" data-i18n="miniNote">
+          This is a simple screening tool and does not replace medical judgment.
+        </span>
+      </div>
+    </form>
+
+    <div class="result" id="result">
+      <div class="result-header">
+        <div>
+          <strong data-i18n="yourScore">Your score:</strong>
+          <span id="score-value">—</span>
+        </div>
+        <div id="risk-pill" class="pill">
+          <span id="risk-label">—</span>
+        </div>
+      </div>
+      <p id="risk-message" style="margin: 8px 0 0;">
+        <span data-i18n="resultHint">Answer the questions and tap “Calculate risk score”.</span>
+      </p>
+      <p class="disclaimer" data-i18n="fullDisclaimer">
+        This mockup is for demonstration only. It is not a medical device and should not be used to make treatment decisions.
+      </p>
+    </div>
+
+    <div class="resources" id="resources">
+      <div class="resources-header">
+        <div class="resources-title">
+          <span class="icon">🧭</span>
+          <span data-i18n="resourcesTitle">Local 211 resources for you</span>
+        </div>
+        <div class="resources-meta" id="resources-meta">
+          <!-- Filled in by JS with county-specific info -->
+        </div>
+      </div>
+      <ul class="resource-list" id="resource-list">
+        <li data-i18n="resourcesHint">
+          Answer the questions and choose your county to see tailored 211 suggestions.
+        </li>
+      </ul>
+      <p class="disclaimer" data-i18n="resourcesNote">
+        Dial 2-1-1 any time for free, confidential help in English, Spanish, or Haitian Creole.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const i18n = {
+      en: {
+        title: "Vulnerable Patient Readmission Checker",
+        subtitle:
+          "Answer a few questions to estimate risk for returning to the hospital. This is a simple screening tool, not a diagnosis.",
+        languageLabel: "Language:",
+        countyLabel: "Where do you live?",
+        q1: "How many different medicines do you take every day?",
+        q1o1: "0–3 medicines",
+        q1o2: "4–6 medicines",
+        q1o3: "7 or more medicines",
+        q2: "Do you have trouble reading or understanding written health information?",
+        q2o1: "No, I understand it well",
+        q2o2: "Sometimes",
+        q2o3: "Yes, I often have trouble",
+        q3: "How often do you miss medicines or medical appointments?",
+        q3o1: "Almost never",
+        q3o2: "Sometimes",
+        q3o3: "Often",
+        q4: "How easy is it for you to get to your clinic, hospital, or pharmacy?",
+        q4o1: "Very easy",
+        q4o2: "Sometimes hard",
+        q4o3: "Very hard / I usually can’t",
+        q5: "Who helps you with your health care at home?",
+        q5o1: "Strong support (family, friends, caregiver)",
+        q5o2: "Some support",
+        q5o3: "Little or no support",
+        q6: "In the last 6 months, how many times were you in the ER or hospital?",
+        q6o1: "0 times",
+        q6o2: "1–2 times",
+        q6o3: "3 or more times",
+        q7: "Do you have a stable place to live?",
+        q7o1: "Yes, stable housing",
+        q7o2: "Sometimes unsure",
+        q7o3: "No, housing is unstable or I am homeless",
+        q8: "How confident do you feel managing your health at home?",
+        q8o1: "Very confident",
+        q8o2: "Somewhat confident",
+        q8o3: "Not confident",
+        calculate: "Calculate risk score",
+        miniNote:
+          "This is a simple screening tool and does not replace medical judgment.",
+        yourScore: "Your score:",
+        resultHint: "Answer the questions and tap “Calculate risk score”.",
+        fullDisclaimer:
+          "This mockup is for demonstration only. It is not a medical device and should not be used to make treatment decisions.",
+        riskLow: "Low risk",
+        riskMedium: "Moderate risk",
+        riskHigh: "High risk",
+        msgLow:
+          "Low estimated risk for readmission. Keep supporting current care and follow-up.",
+        msgMedium:
+          "Moderate estimated risk. Consider extra support with medicines, transport, or follow-up calls.",
+        msgHigh:
+          "High estimated risk. Patient may benefit from focused care coordination and close follow-up.",
+        resourcesTitle: "Local 211 resources for you",
+        resourcesHint:
+          "Answer the questions and choose your county to see tailored 211 suggestions.",
+        resourcesNote:
+          "Dial 2-1-1 any time for free, confidential help in English, Spanish, or Haitian Creole."
+      },
+      es: {
+        title: "Herramienta sencilla de riesgo de reingreso",
+        subtitle:
+          "Responda unas preguntas para estimar el riesgo de volver al hospital. Esta es una herramienta sencilla, no un diagnóstico.",
+        languageLabel: "Idioma:",
+        countyLabel: "¿Dónde vive?",
+        q1: "¿Cuántos medicamentos diferentes toma cada día?",
+        q1o1: "0–3 medicamentos",
+        q1o2: "4–6 medicamentos",
+        q1o3: "7 o más medicamentos",
+        q2: "¿Tiene dificultad para leer o entender la información de salud escrita?",
+        q2o1: "No, la entiendo bien",
+        q2o2: "A veces",
+        q2o3: "Sí, con frecuencia me cuesta",
+        q3: "¿Con qué frecuencia se le olvidan los medicamentos o las citas médicas?",
+        q3o1: "Casi nunca",
+        q3o2: "A veces",
+        q3o3: "A menudo",
+        q4: "¿Qué tan fácil es para usted llegar a la clínica, hospital o farmacia?",
+        q4o1: "Muy fácil",
+        q4o2: "A veces difícil",
+        q4o3: "Muy difícil / casi nunca puedo",
+        q5: "¿Quién le ayuda con su atención de salud en casa?",
+        q5o1: "Apoyo fuerte (familia, amigos, cuidador)",
+        q5o2: "Algo de apoyo",
+        q5o3: "Poco o ningún apoyo",
+        q6: "En los últimos 6 meses, ¿cuántas veces estuvo en urgencias o hospitalizado?",
+        q6o1: "0 veces",
+        q6o2: "1–2 veces",
+        q6o3: "3 o más veces",
+        q7: "¿Tiene un lugar estable donde vivir?",
+        q7o1: "Sí, vivienda estable",
+        q7o2: "A veces no estoy seguro/a",
+        q7o3: "No, la vivienda es inestable o estoy sin hogar",
+        q8: "¿Qué tan seguro/a se siente para manejar su salud en casa?",
+        q8o1: "Muy seguro/a",
+        q8o2: "Algo seguro/a",
+        q8o3: "Nada seguro/a",
+        calculate: "Calcular puntaje de riesgo",
+        miniNote:
+          "Esta es una herramienta sencilla y no reemplaza el juicio médico.",
+        yourScore: "Su puntaje:",
+        resultHint:
+          "Responda las preguntas y toque “Calcular puntaje de riesgo”.",
+        fullDisclaimer:
+          "Este diseño es solo para demostración. No es un dispositivo médico y no debe usarse para tomar decisiones de tratamiento.",
+        riskLow: "Riesgo bajo",
+        riskMedium: "Riesgo moderado",
+        riskHigh: "Riesgo alto",
+        msgLow:
+          "Riesgo estimado bajo de reingreso. Mantenga el apoyo y el seguimiento actual.",
+        msgMedium:
+          "Riesgo estimado moderado. Considere apoyo adicional con medicamentos, transporte o llamadas de seguimiento.",
+        msgHigh:
+          "Riesgo estimado alto. La persona podría beneficiarse de coordinación de cuidados intensiva y seguimiento cercano.",
+        resourcesTitle: "Recursos locales 211 para usted",
+        resourcesHint:
+          "Responda las preguntas y elija su condado para ver sugerencias 211.",
+        resourcesNote:
+          "Marque 2-1-1 en cualquier momento para ayuda gratuita y confidencial en inglés, español o criollo haitiano."
+      },
+      ht: {
+        title: "Zouti senp pou risk retounen lopital",
+        subtitle:
+          "Repon kèk kesyon pou estime risk pou ou retounen lopital. Zouti sa a se yon tès senp, li pa yon dyagnostik.",
+        languageLabel: "Lang:",
+        countyLabel: "Ki kote ou rete?",
+        q1: "Konbyen medikaman diferan ou pran chak jou?",
+        q1o1: "0–3 medikaman",
+        q1o2: "4–6 medikaman",
+        q1o3: "7 oswa plis medikaman",
+        q2: "Èske ou gen difikilte pou li oswa konprann enfòmasyon sou sante ki ekri?",
+        q2o1: "Non, mwen konprann yo byen",
+        q2o2: "Pafwa",
+        q2o3: "Wi, mwen souvan gen difikilte",
+        q3: "Konbyen fwa ou rate medikaman oswa randevou medikal yo?",
+        q3o1: "Pratikman pa janm",
+        q3o2: "Pafwa",
+        q3o3: "Souvan",
+        q4: "Ki jan li fasil pou ou ale klinik, lopital oswa famasi a?",
+        q4o1: "Trè fasil",
+        q4o2: "Pafwa difisil",
+        q4o3: "Trè difisil / Mwen souvan pa ka ale",
+        q5: "Ki moun ki ede w ak swen sante ou lakay?",
+        q5o1: "Gwo sipò (fanmi, zanmi, moun kap bay swen)",
+        q5o2: "Gen kèk sipò",
+        q5o3: "Ti kras oswa pa gen sipò ditou",
+        q6: "Nan 6 dènye mwa yo, konbyen fwa ou te ale ijans oswa te entène lopital?",
+        q6o1: "0 fwa",
+        q6o2: "1–2 fwa",
+        q6o3: "3 fwa oswa plis",
+        q7: "Èske ou gen yon kote ki estab pou rete?",
+        q7o1: "Wi, lojman mwen estab",
+        q7o2: "Pafwa mwen pa fin sèten",
+        q7o3: "Non, lojman an pa estab oswa mwen san kay",
+        q8: "Ki jan ou santi ou konfyans pou jere sante ou lakay ou?",
+        q8o1: "Trè konfyans",
+        q8o2: "Yon ti jan konfyans",
+        q8o3: "Pa konfyans ditou",
+        calculate: "Kalkile nòt risk la",
+        miniNote:
+          "Sa a se yon zouti depistaj senp, li pa ranplase jijman medikal.",
+        yourScore: "Nòt ou:",
+        resultHint:
+          "Reponn kesyon yo epi peze “Kalkile nòt risk la”.",
+        fullDisclaimer:
+          "Modèl sa a se sèlman pou demonstrasyon. Li pa yon aparèy medikal epi yo pa dwe sèvi avè l pou pran desizyon tretman.",
+        riskLow: "Risk ba",
+        riskMedium: "Risk mwayen",
+        riskHigh: "Gwo risk",
+        msgLow:
+          "Risk retounen lopital la parèt ba. Kontinye ak sipò ak swivi ou genyen an.",
+        msgMedium:
+          "Risk la sanble mwayen. Panse pou bay plis sipò pou medikaman, transpò oswa apèl swivi.",
+        msgHigh:
+          "Risk la sanble wo. Moun nan ka benefisye de bon kowòdinasyon swen ak swivi sere.",
+        resourcesTitle: "Resous lokal 211 pou ou",
+        resourcesHint:
+          "Reponn kesyon yo epi chwazi konte w la pou wè sijesyon 211.",
+        resourcesNote:
+          "Rele 2-1-1 nenpòt lè pou jwenn èd gratis, konfidansyèl nan anglè, panyòl oswa kreyòl ayisyen."
+      }
+    };
+
+    const langSelect = document.getElementById("language");
+    const countySelect = document.getElementById("county");
+    const scoreValueEl = document.getElementById("score-value");
+    const riskLabelEl = document.getElementById("risk-label");
+    const riskPillEl = document.getElementById("risk-pill");
+    const riskMessageEl = document.getElementById("risk-message");
+    const resourcesMetaEl = document.getElementById("resources-meta");
+    const resourceListEl = document.getElementById("resource-list");
+
+    function applyLanguage(lang) {
+      const strings = i18n[lang] || i18n.en;
+      document
+        .querySelectorAll("[data-i18n]")
+        .forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          if (strings[key]) {
+            el.textContent = strings[key];
+          }
+        });
+    }
+
+    langSelect.addEventListener("change", (e) => {
+      applyLanguage(e.target.value);
+    });
+
+    function get211Profile(county) {
+      // Static description + links based on Florida 211 network and local centers
+      // Miami-Dade/Monroe -> 211 Miami
+      // Broward -> 211 Broward
+      // Palm Beach/Treasure Coast -> 211 Palm Beach
+      switch (county) {
+        case "miami":
+          return {
+            name: "211 Miami",
+            area: "Miami-Dade & Monroe",
+            phone: "Dial 2-1-1 or (305) 631-4211",
+            site: "https://211miami.org",
+            note:
+              "211 Miami connects you to food, housing, mental health, financial help and more, 24/7."
+          };
+        case "broward":
+          return {
+            name: "211 Broward",
+            area: "Broward County",
+            phone: "Dial 2-1-1 or (954) 537-0211",
+            site: "https://www.211-broward.org",
+            note:
+              "211 Broward offers food, housing, health care, elder care, child care, legal aid, and mental health support."
+          };
+        case "palmbeach":
+          return {
+            name: "211 Palm Beach / Treasure Coast",
+            area: "Palm Beach & Treasure Coast",
+            phone: "Dial 2-1-1",
+            site: "https://www.211palmbeach.org",
+            note:
+              "211 Palm Beach / Treasure Coast connects you to local social and community services."
+          };
+        default:
+          return {
+            name: "Florida 211",
+            area: "South Florida",
+            phone: "Dial 2-1-1",
+            site: "https://fl211.org",
+            note:
+              "Florida 211 will route your call to the nearest 211 center for local help."
+          };
+      }
+    }
+
+    function render211Meta(profile) {
+      resourcesMetaEl.innerHTML =
+        "<strong>" +
+        profile.name +
+        "</strong><br>" +
+        profile.area +
+        "<br>" +
+        profile.phone;
+    }
+
+    function buildNeedTags(answers) {
+      const needs = [];
+
+      if (answers.q4 === 2) {
+        needs.push({
+          id: "transport",
+          label: "Transportation to care",
+          desc:
+            "Ask 211 about transportation services, paratransit, or help getting to medical appointments."
+        });
+      }
+
+      if (answers.q7 === 2) {
+        needs.push({
+          id: "housing",
+          label: "Housing & shelter",
+          desc:
+            "Ask 211 about emergency shelters, rental assistance, and housing stability programs."
+        });
+      }
+
+      if (answers.q5 === 2) {
+        needs.push({
+          id: "support",
+          label: "Social & caregiver support",
+          desc:
+            "Ask 211 about caregiver support, senior services, support groups, and community programs."
+        });
+      }
+
+      if (answers.q2 === 2) {
+        needs.push({
+          id: "literacy",
+          label: "Health literacy & navigation",
+          desc:
+            "Tell 211 you need help understanding medical instructions; they can connect you to community health workers or education programs."
+        });
+      }
+
+      if (answers.q3 === 2 || answers.q1 === 2) {
+        needs.push({
+          id: "meds",
+          label: "Medication management",
+          desc:
+            "Ask 211 about medication review programs, pharmacy support, or case management to help keep medicines organized."
+        });
+      }
+
+      if (answers.q6 === 2) {
+        needs.push({
+          id: "highUse",
+          label: "Frequent ER / hospital use",
+          desc:
+            "Mention that you have been to the ER or hospital several times; 211 can look for care coordination, primary care, and mental/behavioral health supports."
+        });
+      }
+
+      if (answers.q8 === 2) {
+        needs.push({
+          id: "selfMgmt",
+          label: "Help managing health at home",
+          desc:
+            "Tell 211 you don’t feel confident managing your health; ask about home visit programs, nurse lines, or disease management."
+        });
+      }
+
+      return needs;
+    }
+
+    function renderResources(profile, needs, lang, totalScore) {
+      const strings = i18n[lang] || i18n.en;
+
+      render211Meta(profile);
+
+      // Clear list
+      resourceListEl.innerHTML = "";
+
+      if (needs.length === 0 && totalScore === null) {
+        const li = document.createElement("li");
+        li.textContent = strings.resourcesHint;
+        resourceListEl.appendChild(li);
+        return;
+      }
+
+      if (needs.length === 0 && totalScore !== null) {
+        const li = document.createElement("li");
+        li.textContent =
+          "No specific risks flagged in this quick screen. You can still call " +
+          profile.name +
+          " for help with food, housing, mental health, and more.";
+        resourceListEl.appendChild(li);
+      }
+
+      needs.forEach((need) => {
+        const li = document.createElement("li");
+        li.innerHTML =
+          "<strong>" +
+          need.label +
+          "</strong>" +
+          '<span class="tag">211</span><br>' +
+          need.desc;
+        resourceListEl.appendChild(li);
+      });
+
+      const liLink = document.createElement("li");
+      liLink.innerHTML =
+        'Visit <a class="resource-link" href="' +
+        profile.site +
+        '" target="_blank" rel="noopener noreferrer">' +
+        profile.name +
+        "</a> or call " +
+        profile.phone +
+        " for live help.";
+      resourceListEl.appendChild(liLink);
+    }
+
+    document.getElementById("calculate").addEventListener("click", () => {
+      let total = 0;
+      let answered = 0;
+      const answers = {};
+
+      for (let i = 1; i <= 8; i++) {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (selected) {
+          answered++;
+          const val = Number(selected.value);
+          total += val;
+          answers["q" + i] = val;
+        } else {
+          answers["q" + i] = null;
+        }
+      }
+
+      const currentLang = langSelect.value;
+      const strings = i18n[currentLang] || i18n.en;
+
+      const county = countySelect.value;
+      const profile = get211Profile(county);
+
+      if (answered < 8) {
+        scoreValueEl.textContent = "—";
+        riskLabelEl.textContent = "";
+        riskPillEl.className = "pill";
+        riskMessageEl.textContent =
+          strings.resultHint +
+          " (" +
+          answered +
+          "/8 " +
+          (currentLang === "es"
+            ? "contestadas"
+            : currentLang === "ht"
+            ? "reponn"
+            : "answered") +
+          ")";
+        renderResources(profile, [], currentLang, null);
+        return;
+      }
+
+      scoreValueEl.textContent = total.toString();
+
+      let label, msg, pillClass;
+      if (total <= 5) {
+        label = strings.riskLow;
+        msg = strings.msgLow;
+        pillClass = "pill pill-low";
+      } else if (total <= 11) {
+        label = strings.riskMedium;
+        msg = strings.msgMedium;
+        pillClass = "pill pill-medium";
+      } else {
+        label = strings.riskHigh;
+        msg = strings.msgHigh;
+        pillClass = "pill pill-high";
+      }
+
+      riskLabelEl.textContent = label;
+      riskPillEl.className = pillClass;
+      riskMessageEl.textContent = msg;
+
+      const needs = buildNeedTags(answers);
+      renderResources(profile, needs, currentLang, total);
+    });
+
+    // Initialize default language & resources
+    applyLanguage("en");
+    renderResources(get211Profile(countySelect.value), [], "en", null);
+  </script>
+</body>
+</html>
