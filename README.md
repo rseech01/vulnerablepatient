@@ -1,5 +1,5 @@
 # vulnerablepatient
-Knight Baptist Project
+Knight Baptist Innovation Fellowship Project
 # Vulnerable Patient Readmission Checker
 
 A lightweight single-page mockup that screens for potential hospital readmission risk and recommends local 211 resources in South Florida. The tool is HTML/JS only—open `index.html` in any modern browser to try it.
