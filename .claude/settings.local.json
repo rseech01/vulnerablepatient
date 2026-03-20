@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "WebSearch"
+      "WebSearch",
+      "Bash(node -c /c/users/rseec/documents/github/vulnerablepatient/index.html)",
+      "Bash(sed \"1d;$d\")",
+      "Bash(node -c /tmp/check.js)",
+      "Bash(xxd)",
+      "Bash(sed -n '/<script>/,/<\\\\/script>/p' /c/users/rseec/documents/github/vulnerablepatient/index.html)",
+      "Bash(node -e \"var fs=require\\(''fs''\\); var s=fs.readFileSync\\(''/tmp/check.js'',''utf8''\\); var m=s.match\\(/[\\\\u201c\\\\u201d\\\\u2018\\\\u2019]/g\\); console.log\\(m ? ''FOUND: ''+m.length+'' curly quotes'' : ''No curly quotes''\\)\")",
+      "Bash(node:*)"
     ]
   }
 }

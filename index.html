@@ -2,8 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Vulnerable Patient Readmission Checker + 211 Support</title>
+  <title>Improve Post-Discharge Care | Multilingual Patient Readmission Assessment</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Free multilingual screening tool that estimates hospital readmission risk and connects South Florida patients to local 211 resources. Available in English, Spanish, and Haitian Creole." />
+  <meta property="og:title" content="Improve Post-Discharge Care | Multilingual Readmission Assessment" />
+  <meta property="og:description" content="Answer 8 questions to estimate readmission risk and get connected to local 211 social services in South Florida. Available in English, Spanish, and Haitian Creole." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.vulnerablepatients.com/" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="es_US" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Improve Post-Discharge Care | Multilingual Readmission Assessment" />
+  <meta name="twitter:description" content="Free screening tool connecting South Florida patients to 211 resources in English, Spanish, and Haitian Creole." />
   <style>
     * {
       box-sizing: border-box;
@@ -48,61 +58,120 @@
       font-weight: 500;
     }
     select {
-      padding: 6px 8px;
+      padding: 10px 12px;
       border-radius: 6px;
-      border: 1px solid #ccc;
+      border: 1px solid #888;
       font-size: 0.9rem;
       background: #fff;
     }
+    /* Wizard: single-card at a time */
     .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 12px;
+      position: relative;
       margin: 12px 0 20px;
     }
     .card {
       background: #ffffff;
-      border-radius: 12px;
-      padding: 12px 14px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-      display: flex;
+      border-radius: 16px;
+      padding: 24px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      display: none;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
+      max-width: 540px;
+      margin: 0 auto;
     }
-    .card-header {
+    .card.active {
       display: flex;
-      align-items: center;
-      gap: 8px;
     }
     .card-emoji {
-      font-size: 1.6rem;
-    }
-    .card-title {
-      font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 2.4rem;
+      text-align: center;
+      margin-bottom: 4px;
     }
     .card-options {
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      margin-top: 4px;
+      gap: 8px;
+      margin-top: 8px;
     }
     .card-options label {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.9rem;
+      gap: 10px;
+      font-size: 1rem;
       cursor: pointer;
     }
     .card-options input[type="radio"] {
       accent-color: #007aff;
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
     }
+
+    /* Progress bar */
+    .progress-container {
+      max-width: 540px;
+      margin: 0 auto 16px;
+    }
+    .progress-bar {
+      height: 6px;
+      background: #e0e0e0;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #007aff;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+    .progress-label {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    /* Wizard navigation */
+    .wizard-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 540px;
+      margin: 16px auto 0;
+      gap: 12px;
+    }
+    .wizard-nav button {
+      min-width: 100px;
+    }
+    .btn-back {
+      background: #e0e0e0;
+      color: #333;
+      box-shadow: none;
+    }
+    .btn-back:hover {
+      background: #ccc;
+      box-shadow: none;
+    }
+    .btn-next {
+      margin-left: auto;
+    }
+
+    /* Hidden actions row — calculate/reset only shown at end */
     .actions {
       margin-top: 12px;
-      display: flex;
+      display: none;
       flex-wrap: wrap;
       gap: 10px;
       align-items: center;
+      justify-content: center;
+      max-width: 540px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .actions.visible {
+      display: flex;
     }
     button {
       border: none;
@@ -201,15 +270,272 @@
     a.resource-link:hover {
       text-decoration: underline;
     }
+
+    /* Accessibility: visible focus rings */
+    button:focus-visible,
+    select:focus-visible,
+    a:focus-visible {
+      outline: 3px solid #005fcc;
+      outline-offset: 2px;
+    }
+    input[type="radio"]:focus-visible {
+      outline: 3px solid #005fcc;
+      outline-offset: 2px;
+    }
+
+    /* Accessibility: enlarged touch targets for radio options */
+    .card-options label {
+      padding: 14px 12px;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .card-options label:hover {
+      background: #f2f2f7;
+    }
+    .card-options label:has(input:checked) {
+      background: #e8f0fe;
+      border-color: #007aff;
+    }
+    /* Accessibility: fieldset/legend reset */
+    fieldset.card-radio-group {
+      border: none;
+      margin: 0;
+      padding: 0;
+    }
+    fieldset.card-radio-group legend {
+      font-weight: 600;
+      font-size: 1.1rem;
+      line-height: 1.4;
+      padding: 0;
+      margin: 0;
+      width: 100%;
+    }
+
+    /* Accessibility: unanswered card highlight */
+    .card.unanswered {
+      border: 2px solid #b06400;
+    }
+    .card .unanswered-msg {
+      color: #b06400;
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+
+    /* Button states */
+    button:hover {
+      background: #0062d1;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Disclaimer callout */
+    .disclaimer-callout {
+      background: #fffbe6;
+      border-left: 4px solid #b06400;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      color: #554400;
+      margin-bottom: 12px;
+    }
+
+    /* Call 211 button */
+    .call-211-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #1d7a35;
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 22px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      margin-top: 10px;
+    }
+    .call-211-btn:hover {
+      background: #15612a;
+    }
+    .call-211-btn:focus-visible {
+      outline: 3px solid #005fcc;
+      outline-offset: 2px;
+    }
+
+    /* Print button */
+    .print-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #555;
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      margin-left: 8px;
+    }
+    .print-btn:hover {
+      background: #333;
+    }
+
+    /* Action buttons row */
+    .result-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      align-items: center;
+    }
+
+    /* Risk icons alongside pills */
+    .risk-icon {
+      margin-right: 4px;
+    }
+
+    /* Insurance support card */
+    .insurance-support {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-top: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      border-left: 4px solid #007aff;
+      font-size: 0.95rem;
+    }
+    .insurance-support h3 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .insurance-support ul {
+      margin: 8px 0;
+      padding-left: 18px;
+    }
+    .insurance-support ul li {
+      margin-bottom: 6px;
+    }
+    .ins-script {
+      background: #f0f4ff;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      margin: 12px 0;
+      line-height: 1.5;
+    }
+    .ins-how {
+      margin-top: 10px;
+      font-weight: 600;
+    }
+    .call-insurance-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #007aff;
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 22px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      margin-top: 10px;
+    }
+    .call-insurance-btn:hover {
+      background: #0062d1;
+    }
+    .call-insurance-btn:focus-visible {
+      outline: 3px solid #005fcc;
+      outline-offset: 2px;
+    }
+    .ins-trust-note {
+      font-size: 0.8rem;
+      color: #666;
+      margin-bottom: 8px;
+      font-style: italic;
+    }
+    /* Insurance Q: skip link */
+    .skip-link {
+      display: inline-block;
+      font-size: 0.85rem;
+      color: #007aff;
+      cursor: pointer;
+      margin-top: 8px;
+      text-decoration: underline;
+      background: none;
+      border: none;
+      padding: 0;
+      box-shadow: none;
+    }
+    .skip-link:hover {
+      color: #0062d1;
+    }
+
+    /* Print stylesheet */
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+        font-size: 12pt;
+      }
+      .app-container {
+        max-width: 100%;
+      }
+      form#risk-form,
+      .top-row,
+      .actions,
+      .call-211-btn,
+      .print-btn,
+      .result-actions button {
+        display: none !important;
+      }
+      .result, .resources, .insurance-support {
+        box-shadow: none;
+        border: 1px solid #ccc;
+        break-inside: avoid;
+      }
+      .insurance-support {
+        border-left: 4px solid #000;
+      }
+      .call-insurance-btn {
+        display: none !important;
+      }
+      a.resource-link::after {
+        content: " (" attr(href) ")";
+        font-size: 0.8em;
+        color: #555;
+      }
+      .disclaimer-callout {
+        border-left-color: #000;
+        background: #f9f9f9;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="app-container">
+    <a href="#risk-form" class="sr-only" style="position:absolute;left:-9999px;top:0;padding:8px;background:#005fcc;color:#fff;z-index:100;" onfocus="this.style.left='0'" onblur="this.style.left='-9999px'">Skip to screening form</a>
     <header>
-      <h1 data-i18n="title">Vulnerable Patient Readmission Checker</h1>
+      <h1 data-i18n="title">Post-Discharge Social Needs Screener</h1>
       <p data-i18n="subtitle">
-        Answer a few questions to estimate risk for returning to the hospital. This is a simple screening tool, not a diagnosis.
+        Answer a few questions to identify social needs that may affect your recovery after leaving the hospital. This is a simple screening tool, not a diagnosis.
       </p>
+      <div class="disclaimer-callout" data-i18n="topDisclaimer">
+        This tool is for demonstration and screening purposes only. It is not a medical device and should not replace clinical judgment or treatment decisions.
+      </div>
       <div class="top-row">
         <div class="language-select">
           <label for="language" data-i18n="languageLabel">Language:</label>
@@ -231,642 +557,1007 @@
       </div>
     </header>
 
+    <main>
     <form id="risk-form">
-      <div class="cards">
+      <div class="progress-container">
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="progress-label" id="progress-label">Question 1 of 9</div>
+      </div>
+      <div class="cards" id="cards">
         <!-- Q1 Polypharmacy -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-emoji">💊</div>
-            <div class="card-title" data-i18n="q1">
-              How many different medicines do you take every day?
+        <div class="card" data-question="q1">
+          <fieldset class="card-radio-group">
+            <legend>
+              <span class="card-emoji" aria-hidden="true">💊</span>
+              <span data-i18n="q1">How many different medicines do you take every day?</span>
+            </legend>
+            <div class="card-options">
+              <label><input type="radio" name="q1" value="0" /><span data-i18n="q1o1">0–3 medicines</span></label>
+              <label><input type="radio" name="q1" value="1" /><span data-i18n="q1o2">4–6 medicines</span></label>
+              <label><input type="radio" name="q1" value="2" /><span data-i18n="q1o3">7 or more medicines</span></label>
             </div>
-          </div>
-          <div class="card-options">
-            <label>
-              <input type="radio" name="q1" value="0" />
-              <span data-i18n="q1o1">0–3 medicines</span>
-            </label>
-            <label>
-              <input type="radio" name="q1" value="1" />
-              <span data-i18n="q1o2">4–6 medicines</span>
-            </label>
-            <label>
-              <input type="radio" name="q1" value="2" />
-              <span data-i18n="q1o3">7 or more medicines</span>
-            </label>
-          </div>
+          </fieldset>
+        </div>
+
+        <!-- Insurance routing question (not scored) -->
+        <div class="card" data-question="qIns">
+          <fieldset class="card-radio-group">
+            <legend>
+              <span class="card-emoji" aria-hidden="true">🛡️</span>
+              <span data-i18n="qIns">Do you have health insurance or a health plan?</span>
+            </legend>
+            <div class="ins-trust-note" data-i18n="insTrust">This helps us find the right resources for you. Your answer is private and will not be shared.</div>
+            <div class="card-options">
+              <label><input type="radio" name="qIns" value="commercial" /><span data-i18n="qInsO1">Yes, through my job or the Marketplace</span></label>
+              <label><input type="radio" name="qIns" value="medicare" /><span data-i18n="qInsO2">Yes, Medicare (age 65+ or disability)</span></label>
+              <label><input type="radio" name="qIns" value="medicaid" /><span data-i18n="qInsO3">Yes, Medicaid (state program)</span></label>
+              <label><input type="radio" name="qIns" value="unsure" /><span data-i18n="qInsO4">I'm not sure</span></label>
+              <label><input type="radio" name="qIns" value="none" /><span data-i18n="qInsO5">No, I don't have insurance</span></label>
+            </div>
+            <button type="button" class="skip-link" id="skip-insurance" data-i18n="insSkip">Skip this question</button>
+          </fieldset>
         </div>
 
         <!-- Q2 Literacy -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-emoji">📖</div>
-            <div class="card-title" data-i18n="q2">
-              Do you have trouble reading or understanding written health information?
+        <div class="card" data-question="q2">
+          <fieldset class="card-radio-group">
+            <legend>
+              <span class="card-emoji" aria-hidden="true">📖</span>
+              <span data-i18n="q2">Do you have trouble reading or understanding written health information?</span>
+            </legend>
+            <div class="card-options">
+              <label><input type="radio" name="q2" value="0" /><span data-i18n="q2o1">No, I understand it well</span></label>
+              <label><input type="radio" name="q2" value="1" /><span data-i18n="q2o2">Sometimes</span></label>
+              <label><input type="radio" name="q2" value="2" /><span data-i18n="q2o3">Yes, I often have trouble</span></label>
             </div>
-          </div>
-          <div class="card-options">
-            <label>
-              <input type="radio" name="q2" value="0" />
-              <span data-i18n="q2o1">No, I understand it well</span>
-            </label>
-            <label>
-              <input type="radio" name="q2" value="1" />
-              <span data-i18n="q2o2">Sometimes</span>
-            </label>
-            <label>
-              <input type="radio" name="q2" value="2" />
-              <span data-i18n="q2o3">Yes, I often have trouble</span>
-            </label>
-          </div>
+          </fieldset>
         </div>
 
         <!-- Q3 Compliance -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-emoji">⏰</div>
-            <div class="card-title" data-i18n="q3">
-              How often do you miss medicines or medical appointments?
+        <div class="card" data-question="q3">
+          <fieldset class="card-radio-group">
+            <legend>
+              <span class="card-emoji" aria-hidden="true">⏰</span>
+              <span data-i18n="q3">How often do you miss medicines or medical appointments?</span>
+            </legend>
+            <div class="card-options">
+              <label><input type="radio" name="q3" value="0" /><span data-i18n="q3o1">Almost never</span></label>
+              <label><input type="radio" name="q3" value="1" /><span data-i18n="q3o2">Sometimes</span></label>
+              <label><input type="radio" name="q3" value="2" /><span data-i18n="q3o3">Often</span></label>
             </div>
-          </div>
-          <div class="card-options">
-            <label>
-              <input type="radio" name="q3" value="0" />
-              <span data-i18n="q3o1">Almost never</span>
-            </label>
-            <label>
-              <input type="radio" name="q3" value="1" />
-              <span data-i18n="q3o2">Sometimes</span>
-            </label>
-            <label>
-              <input type="radio" name="q3" value="2" />
-              <span data-i18n="q3o3">Often</span>
-            </label>
-          </div>
+          </fieldset>
         </div>
 
         <!-- Q4 Transportation -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-emoji">🚗</div>
-            <div class="card-title" data-i18n="q4">
-              How easy is it for you to get to your clinic, hospital, or pharmacy?
+        <div class="card" data-question="q4">
+          <fieldset class="card-radio-group">
+            <legend>
+              <span class="card-emoji" aria-hidden="true">🚗</span>
+              <span data-i18n="q4">How easy is it for you to get to your clinic, hospital, or pharmacy?</span>
+            </legend>
+            <div class="card-options">
+              <label><input type="radio" name="q4" value="0" /><span data-i18n="q4o1">Very easy</span></label>
+              <label><input type="radio" name="q4" value="1" /><span data-i18n="q4o2">Sometimes hard</span></label>
+              <label><input type="radio" name="q4" value="2" /><span data-i18n="q4o3">Very hard / I usually can't</span></label>
             </div>
-          </div>
-          <div class="card-options">
-            <label>
-              <input type="radio" name="q4" value="0" />
-              <span data-i18n="q4o1">Very easy</span>
-            </label>
-            <label>
-              <input type="radio" name="q4" value="1" />
-              <span data-i18n="q4o2">Sometimes hard</span>
-            </label>
-            <label>
-              <input type="radio" name="q4" value="2" />
-              <span data-i18n="q4o3">Very hard / I usually can’t</span>
-            </label>
-          </div>
+          </fieldset>
         </div>
 
         <!-- Q5 Support network -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-emoji">👪</div>
-            <div class="card-title" data-i18n="q5">
-              Who helps you with your health care at home?
+        <div class="card" data-question="q5">
+          <fieldset class="card-radio-group">
+            <legend>
+              <span class="card-emoji" aria-hidden="true">👪</span>
+              <span data-i18n="q5">Who helps you with your health care at home?</span>
+            </legend>
+            <div class="card-options">
+              <label><input type="radio" name="q5" value="0" /><span data-i18n="q5o1">Strong support (family, friends, caregiver)</span></label>
+              <label><input type="radio" name="q5" value="1" /><span data-i18n="q5o2">Some support</span></label>
+              <label><input type="radio" name="q5" value="2" /><span data-i18n="q5o3">Little or no support</span></label>
             </div>
-          </div>
-          <div class="card-options">
-            <label>
-              <input type="radio" name="q5" value="0" />
-              <span data-i18n="q5o1">Strong support (family, friends, caregiver)</span>
-            </label>
-            <label>
-              <input type="radio" name="q5" value="1" />
-              <span data-i18n="q5o2">Some support</span>
-            </label>
-            <label>
-              <input type="radio" name="q5" value="2" />
-              <span data-i18n="q5o3">Little or no support</span>
-            </label>
-          </div>
+          </fieldset>
         </div>
 
         <!-- Q6 Prior utilization -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-emoji">🏥</div>
-            <div class="card-title" data-i18n="q6">
-              In the last 6 months, how many times were you in the ER or hospital?
+        <div class="card" data-question="q6">
+          <fieldset class="card-radio-group">
+            <legend>
+              <span class="card-emoji" aria-hidden="true">🏥</span>
+              <span data-i18n="q6">In the last 6 months, how many times were you in the ER or hospital?</span>
+            </legend>
+            <div class="card-options">
+              <label><input type="radio" name="q6" value="0" /><span data-i18n="q6o1">0 times</span></label>
+              <label><input type="radio" name="q6" value="1" /><span data-i18n="q6o2">1–2 times</span></label>
+              <label><input type="radio" name="q6" value="2" /><span data-i18n="q6o3">3 or more times</span></label>
             </div>
-          </div>
-          <div class="card-options">
-            <label>
-              <input type="radio" name="q6" value="0" />
-              <span data-i18n="q6o1">0 times</span>
-            </label>
-            <label>
-              <input type="radio" name="q6" value="1" />
-              <span data-i18n="q6o2">1–2 times</span>
-            </label>
-            <label>
-              <input type="radio" name="q6" value="2" />
-              <span data-i18n="q6o3">3 or more times</span>
-            </label>
-          </div>
+          </fieldset>
         </div>
 
         <!-- Q7 Housing -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-emoji">🏠</div>
-            <div class="card-title" data-i18n="q7">
-              Do you have a stable place to live?
+        <div class="card" data-question="q7">
+          <fieldset class="card-radio-group">
+            <legend>
+              <span class="card-emoji" aria-hidden="true">🏠</span>
+              <span data-i18n="q7">Do you have a stable place to live?</span>
+            </legend>
+            <div class="card-options">
+              <label><input type="radio" name="q7" value="0" /><span data-i18n="q7o1">Yes, stable housing</span></label>
+              <label><input type="radio" name="q7" value="1" /><span data-i18n="q7o2">Sometimes unsure</span></label>
+              <label><input type="radio" name="q7" value="2" /><span data-i18n="q7o3">No, housing is unstable or I am homeless</span></label>
             </div>
-          </div>
-          <div class="card-options">
-            <label>
-              <input type="radio" name="q7" value="0" />
-              <span data-i18n="q7o1">Yes, stable housing</span>
-            </label>
-            <label>
-              <input type="radio" name="q7" value="1" />
-              <span data-i18n="q7o2">Sometimes unsure</span>
-            </label>
-            <label>
-              <input type="radio" name="q7" value="2" />
-              <span data-i18n="q7o3">No, housing is unstable or I am homeless</span>
-            </label>
-          </div>
+          </fieldset>
         </div>
 
         <!-- Q8 Confidence / self-management -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-emoji">💪</div>
-            <div class="card-title" data-i18n="q8">
-              How confident do you feel managing your health at home?
+        <div class="card" data-question="q8">
+          <fieldset class="card-radio-group">
+            <legend>
+              <span class="card-emoji" aria-hidden="true">💪</span>
+              <span data-i18n="q8">How confident do you feel managing your health at home?</span>
+            </legend>
+            <div class="card-options">
+              <label><input type="radio" name="q8" value="0" /><span data-i18n="q8o1">Very confident</span></label>
+              <label><input type="radio" name="q8" value="1" /><span data-i18n="q8o2">Somewhat confident</span></label>
+              <label><input type="radio" name="q8" value="2" /><span data-i18n="q8o3">Not confident</span></label>
             </div>
-          </div>
-          <div class="card-options">
-            <label>
-              <input type="radio" name="q8" value="0" />
-              <span data-i18n="q8o1">Very confident</span>
-            </label>
-            <label>
-              <input type="radio" name="q8" value="1" />
-              <span data-i18n="q8o2">Somewhat confident</span>
-            </label>
-            <label>
-              <input type="radio" name="q8" value="2" />
-              <span data-i18n="q8o3">Not confident</span>
-            </label>
-          </div>
+          </fieldset>
         </div>
       </div>
 
-      <div class="actions">
+      <div class="wizard-nav" id="wizard-nav">
+        <button type="button" id="btn-back" class="btn-back" data-i18n="back">Back</button>
+        <button type="button" id="btn-next" class="btn-next" data-i18n="next">Next</button>
+      </div>
+
+      <div class="actions" id="actions-row">
         <button type="button" id="calculate" data-i18n="calculate">
           Calculate risk score
         </button>
-        <span class="disclaimer" data-i18n="miniNote">
-          This is a simple screening tool and does not replace medical judgment.
-        </span>
+        <button type="button" id="reset-btn" style="background:#888;" data-i18n="startOver">
+          Start over
+        </button>
       </div>
     </form>
 
-    <div class="result" id="result">
+    <section id="result" class="result" aria-live="polite" style="display:none;">
       <div class="result-header">
         <div>
           <strong data-i18n="yourScore">Your score:</strong>
-          <span id="score-value">—</span>
+          <span id="score-value">--</span>
         </div>
         <div id="risk-pill" class="pill">
-          <span id="risk-label">—</span>
+          <span id="risk-icon" class="risk-icon" aria-hidden="true"></span>
+          <span id="risk-label">--</span>
         </div>
       </div>
-      <p id="risk-message" style="margin: 8px 0 0;">
-        <span data-i18n="resultHint">Answer the questions and tap “Calculate risk score”.</span>
-      </p>
-      <p class="disclaimer" data-i18n="fullDisclaimer">
-        This mockup is for demonstration only. It is not a medical device and should not be used to make treatment decisions.
-      </p>
-    </div>
+      <p id="risk-message" style="margin: 8px 0 0;"></p>
+      <div class="result-actions">
+        <a id="call-211-btn" class="call-211-btn" href="tel:211" data-i18n-aria="call211Aria" aria-label="Call 2-1-1 now">
+          <span aria-hidden="true">📞</span> <span data-i18n="call211">Call 211 Now</span>
+        </a>
+        <button type="button" class="print-btn" id="print-btn" data-i18n="printSummary">
+          Print Summary
+        </button>
+        <button type="button" class="print-btn" id="reset-btn-results" data-i18n="startOver" style="background:#007aff;">
+          Start over
+        </button>
+      </div>
+    </section>
 
-    <div class="resources" id="resources">
+    <section id="insurance-support" class="insurance-support" aria-live="polite" style="display:none;">
+      <!-- Populated by JS based on insurance status -->
+    </section>
+
+    <section id="resources" class="resources" aria-live="polite" style="display:none;">
       <div class="resources-header">
         <div class="resources-title">
-          <span class="icon">🧭</span>
+          <span class="icon" aria-hidden="true">🧭</span>
           <span data-i18n="resourcesTitle">Local 211 resources for you</span>
         </div>
-        <div class="resources-meta" id="resources-meta">
-          <!-- Filled in by JS with county-specific info -->
-        </div>
+        <div class="resources-meta" id="resources-meta"></div>
       </div>
-      <ul class="resource-list" id="resource-list">
-        <li data-i18n="resourcesHint">
-          Answer the questions and choose your county to see tailored 211 suggestions.
-        </li>
-      </ul>
+      <ul class="resource-list" id="resource-list"></ul>
       <p class="disclaimer" data-i18n="resourcesNote">
         Dial 2-1-1 any time for free, confidential help in English, Spanish, or Haitian Creole.
       </p>
-    </div>
+    </section>
+    </main>
   </div>
 
   <script>
+    /* ============================================================
+       i18n — full translations including resource/need-tag strings
+       ============================================================ */
     const i18n = {
       en: {
-        title: "Vulnerable Patient Readmission Checker",
-        subtitle:
-          "Answer a few questions to estimate risk for returning to the hospital. This is a simple screening tool, not a diagnosis.",
+        title: "Post-Discharge Social Needs Screener",
+        subtitle: "Answer a few questions to identify social needs that may affect your recovery after leaving the hospital. This is a simple screening tool, not a diagnosis.",
+        topDisclaimer: "This tool is for demonstration and screening purposes only. It is not a medical device and should not replace clinical judgment or treatment decisions.",
         languageLabel: "Language:",
         countyLabel: "Where do you live?",
         q1: "How many different medicines do you take every day?",
-        q1o1: "0–3 medicines",
-        q1o2: "4–6 medicines",
-        q1o3: "7 or more medicines",
+        q1o1: "0\u20133 medicines", q1o2: "4\u20136 medicines", q1o3: "7 or more medicines",
         q2: "Do you have trouble reading or understanding written health information?",
-        q2o1: "No, I understand it well",
-        q2o2: "Sometimes",
-        q2o3: "Yes, I often have trouble",
+        q2o1: "No, I understand it well", q2o2: "Sometimes", q2o3: "Yes, I often have trouble",
         q3: "How often do you miss medicines or medical appointments?",
-        q3o1: "Almost never",
-        q3o2: "Sometimes",
-        q3o3: "Often",
+        q3o1: "Almost never", q3o2: "Sometimes", q3o3: "Often",
         q4: "How easy is it for you to get to your clinic, hospital, or pharmacy?",
-        q4o1: "Very easy",
-        q4o2: "Sometimes hard",
-        q4o3: "Very hard / I usually can’t",
+        q4o1: "Very easy", q4o2: "Sometimes hard", q4o3: "Very hard / I usually can\u2019t",
         q5: "Who helps you with your health care at home?",
-        q5o1: "Strong support (family, friends, caregiver)",
-        q5o2: "Some support",
-        q5o3: "Little or no support",
+        q5o1: "Strong support (family, friends, caregiver)", q5o2: "Some support", q5o3: "Little or no support",
         q6: "In the last 6 months, how many times were you in the ER or hospital?",
-        q6o1: "0 times",
-        q6o2: "1–2 times",
-        q6o3: "3 or more times",
+        q6o1: "0 times", q6o2: "1\u20132 times", q6o3: "3 or more times",
         q7: "Do you have a stable place to live?",
-        q7o1: "Yes, stable housing",
-        q7o2: "Sometimes unsure",
-        q7o3: "No, housing is unstable or I am homeless",
+        q7o1: "Yes, stable housing", q7o2: "Sometimes unsure", q7o3: "No, housing is unstable or I am homeless",
         q8: "How confident do you feel managing your health at home?",
-        q8o1: "Very confident",
-        q8o2: "Somewhat confident",
-        q8o3: "Not confident",
+        q8o1: "Very confident", q8o2: "Somewhat confident", q8o3: "Not confident",
         calculate: "Calculate risk score",
-        miniNote:
-          "This is a simple screening tool and does not replace medical judgment.",
+        startOver: "Start over",
+        back: "Back",
+        next: "Next",
+        progressLabel: "Question {n} of 9",
         yourScore: "Your score:",
-        resultHint: "Answer the questions and tap “Calculate risk score”.",
-        fullDisclaimer:
-          "This mockup is for demonstration only. It is not a medical device and should not be used to make treatment decisions.",
-        riskLow: "Low risk",
-        riskMedium: "Moderate risk",
-        riskHigh: "High risk",
-        msgLow:
-          "Low estimated risk for readmission. Keep supporting current care and follow-up.",
-        msgMedium:
-          "Moderate estimated risk. Consider extra support with medicines, transport, or follow-up calls.",
-        msgHigh:
-          "High estimated risk. Patient may benefit from focused care coordination and close follow-up.",
+        riskLow: "Low risk", riskMedium: "Moderate risk", riskHigh: "High risk",
+        msgLow: "Low estimated risk for readmission. Keep supporting current care and follow-up.",
+        msgMedium: "Moderate estimated risk. Consider extra support with medicines, transport, or follow-up calls.",
+        msgHigh: "High estimated risk. Consider focused care coordination and close follow-up.",
         resourcesTitle: "Local 211 resources for you",
-        resourcesHint:
-          "Answer the questions and choose your county to see tailored 211 suggestions.",
-        resourcesNote:
-          "Dial 2-1-1 any time for free, confidential help in English, Spanish, or Haitian Creole."
+        resourcesNote: "Dial 2-1-1 any time for free, confidential help in English, Spanish, or Haitian Creole.",
+        call211: "Call 211 Now",
+        printSummary: "Print Summary",
+        answerAll: "Please answer all questions.",
+        answeredCount: "answered",
+        noRisksFlagged: "No specific risks flagged in this quick screen. You can still call {name} for help with food, housing, mental health, and more.",
+        visitOrCall: "Visit {name} or call {phone} for live help.",
+        pleaseAnswer: "Please choose an answer",
+        // Need-tag translations
+        needTransport: "Transportation to care",
+        needTransportDesc: "Ask 211 about transportation services, paratransit, or help getting to medical appointments.",
+        needHousing: "Housing & shelter",
+        needHousingDesc: "Ask 211 about emergency shelters, rental assistance, and housing stability programs.",
+        needSupport: "Social & caregiver support",
+        needSupportDesc: "Ask 211 about caregiver support, senior services, support groups, and community programs.",
+        needLiteracy: "Health literacy & navigation",
+        needLiteracyDesc: "Tell 211 you need help understanding medical instructions; they can connect you to community health workers or education programs.",
+        needMeds: "Medication management",
+        needMedsDesc: "Ask 211 about medication review programs, pharmacy support, or case management to help keep medicines organized.",
+        needHighUse: "Frequent ER / hospital use",
+        needHighUseDesc: "Mention that you have been to the ER or hospital several times; 211 can look for care coordination, primary care, and mental/behavioral health supports.",
+        needSelfMgmt: "Help managing health at home",
+        needSelfMgmtDesc: "Tell 211 you don\u2019t feel confident managing your health; ask about home visit programs, nurse lines, or disease management.",
+        // 211 profile notes
+        note211Miami: "211 Miami connects you to food, housing, mental health, financial help and more, 24/7.",
+        note211Broward: "211 Broward offers food, housing, health care, elder care, child care, legal aid, and mental health support.",
+        note211PalmBeach: "211 Palm Beach / Treasure Coast connects you to local social and community services.",
+        note211Florida: "Florida 211 will route your call to the nearest 211 center for local help.",
+        // Insurance question
+        qIns: "Do you have health insurance or a health plan?",
+        qInsO1: "Yes, through my job or the Marketplace",
+        qInsO2: "Yes, Medicare (age 65+ or disability)",
+        qInsO3: "Yes, Medicaid (state program)",
+        qInsO4: "I'm not sure",
+        qInsO5: "No, I don't have insurance",
+        insTrust: "This helps us find the right resources for you. Your answer is private and will not be shared.",
+        insSkip: "Skip this question",
+        // Insurance results — headings
+        insHeadingTeam: "Your Support Team",
+        insHeadCommercial: "You already have a nurse you can call",
+        insHeadMedicare: "Free help from Medicare",
+        insHeadMedicaid: "Free help from your Medicaid plan",
+        insHeadUnsure: "You may have support you don't know about",
+        // Insurance results — body
+        insBodyCommercial: "Your health plan has a team whose job is to help you stay well after leaving the hospital. This is included in your plan at no extra cost.",
+        insBodyMedicare: "Medicare has free programs to help you stay healthy after the hospital.",
+        insBodyMedicaid: "Your Medicaid plan has a care team that can help you stay healthy. This is free.",
+        insBodyUnsure: "Many people have insurance or benefits they don't know about. It's worth finding out \u2014 you may have a free team ready to help.",
+        // Bullet items
+        insBulletNurse: "A nurse you can call with health questions",
+        insBulletMeds: "Help understanding your medicines",
+        insBulletAppt: "Reminders for follow-up appointments",
+        insBulletDoctors: "Finding doctors near you",
+        insBulletRides: "Rides to the doctor",
+        insBulletCareManager: "A care manager assigned to you",
+        insBulletCommunity: "Connecting you to community programs",
+        // Action instructions
+        insFlipCard: "Turn over your insurance card. Call the \"Member Services\" number on the back.",
+        insScript: "Say: \"I just left the hospital. I'd like to talk to someone about help staying healthy.\"",
+        insTime: "It takes about 5 minutes.",
+        insMedicarePhone: "Call 1-800-MEDICARE (1-800-633-4227) \u2014 available 24 hours.",
+        insMedicareMA: "If you have a plan like Humana, Aetna, or UnitedHealthcare, also call the number on your insurance card. They may have extra support.",
+        insMedicaidCall: "Call the number on the back of your Medicaid card and ask for \"Care Management.\"",
+        insMedicaidFallback: "If you are not sure which plan you have, call Florida Medicaid at 1-877-254-1055.",
+        insUnsureSteps: "Look for any insurance card in your wallet, ask your hospital's billing department, or call 211 \u2014 they can help you find out.",
+        ins211CoverageCheck: "211 can also help you find out if you qualify for free or low-cost health coverage.",
+        // Buttons
+        btnCallMemberSvc: "Call Member Services",
+        btnCallMedicare: "Call 1-800-MEDICARE",
+        btnCallMedicaid: "Call Florida Medicaid",
+        btnCall211Check: "Call 211 to check"
       },
       es: {
-        title: "Herramienta sencilla de riesgo de reingreso",
-        subtitle:
-          "Responda unas preguntas para estimar el riesgo de volver al hospital. Esta es una herramienta sencilla, no un diagnóstico.",
+        title: "Evaluaci\u00f3n de necesidades sociales al alta",
+        subtitle: "Responda unas preguntas para identificar necesidades sociales que puedan afectar su recuperaci\u00f3n despu\u00e9s de salir del hospital. Esta es una herramienta sencilla, no un diagn\u00f3stico.",
+        topDisclaimer: "Esta herramienta es solo para demostraci\u00f3n y evaluaci\u00f3n. No es un dispositivo m\u00e9dico y no debe reemplazar el juicio cl\u00ednico ni las decisiones de tratamiento.",
         languageLabel: "Idioma:",
-        countyLabel: "¿Dónde vive?",
-        q1: "¿Cuántos medicamentos diferentes toma cada día?",
-        q1o1: "0–3 medicamentos",
-        q1o2: "4–6 medicamentos",
-        q1o3: "7 o más medicamentos",
-        q2: "¿Tiene dificultad para leer o entender la información de salud escrita?",
-        q2o1: "No, la entiendo bien",
-        q2o2: "A veces",
-        q2o3: "Sí, con frecuencia me cuesta",
-        q3: "¿Con qué frecuencia se le olvidan los medicamentos o las citas médicas?",
-        q3o1: "Casi nunca",
-        q3o2: "A veces",
-        q3o3: "A menudo",
-        q4: "¿Qué tan fácil es para usted llegar a la clínica, hospital o farmacia?",
-        q4o1: "Muy fácil",
-        q4o2: "A veces difícil",
-        q4o3: "Muy difícil / casi nunca puedo",
-        q5: "¿Quién le ayuda con su atención de salud en casa?",
-        q5o1: "Apoyo fuerte (familia, amigos, cuidador)",
-        q5o2: "Algo de apoyo",
-        q5o3: "Poco o ningún apoyo",
-        q6: "En los últimos 6 meses, ¿cuántas veces estuvo en urgencias o hospitalizado?",
-        q6o1: "0 veces",
-        q6o2: "1–2 veces",
-        q6o3: "3 o más veces",
-        q7: "¿Tiene un lugar estable donde vivir?",
-        q7o1: "Sí, vivienda estable",
-        q7o2: "A veces no estoy seguro/a",
-        q7o3: "No, la vivienda es inestable o estoy sin hogar",
-        q8: "¿Qué tan seguro/a se siente para manejar su salud en casa?",
-        q8o1: "Muy seguro/a",
-        q8o2: "Algo seguro/a",
-        q8o3: "Nada seguro/a",
+        countyLabel: "\u00bfD\u00f3nde vive?",
+        q1: "\u00bfCu\u00e1ntos medicamentos diferentes toma cada d\u00eda?",
+        q1o1: "0\u20133 medicamentos", q1o2: "4\u20136 medicamentos", q1o3: "7 o m\u00e1s medicamentos",
+        q2: "\u00bfTiene dificultad para leer o entender la informaci\u00f3n de salud escrita?",
+        q2o1: "No, la entiendo bien", q2o2: "A veces", q2o3: "S\u00ed, con frecuencia me cuesta",
+        q3: "\u00bfCon qu\u00e9 frecuencia se le olvidan los medicamentos o las citas m\u00e9dicas?",
+        q3o1: "Casi nunca", q3o2: "A veces", q3o3: "A menudo",
+        q4: "\u00bfQu\u00e9 tan f\u00e1cil es para usted llegar a la cl\u00ednica, hospital o farmacia?",
+        q4o1: "Muy f\u00e1cil", q4o2: "A veces dif\u00edcil", q4o3: "Muy dif\u00edcil / casi nunca puedo",
+        q5: "\u00bfQui\u00e9n le ayuda con su atenci\u00f3n de salud en casa?",
+        q5o1: "Apoyo fuerte (familia, amigos, cuidador)", q5o2: "Algo de apoyo", q5o3: "Poco o ning\u00fan apoyo",
+        q6: "En los \u00faltimos 6 meses, \u00bfcu\u00e1ntas veces estuvo en urgencias o hospitalizado?",
+        q6o1: "0 veces", q6o2: "1\u20132 veces", q6o3: "3 o m\u00e1s veces",
+        q7: "\u00bfTiene un lugar estable donde vivir?",
+        q7o1: "S\u00ed, vivienda estable", q7o2: "A veces no estoy seguro/a", q7o3: "No, la vivienda es inestable o estoy sin hogar",
+        q8: "\u00bfQu\u00e9 tan seguro/a se siente para manejar su salud en casa?",
+        q8o1: "Muy seguro/a", q8o2: "Algo seguro/a", q8o3: "Nada seguro/a",
         calculate: "Calcular puntaje de riesgo",
-        miniNote:
-          "Esta es una herramienta sencilla y no reemplaza el juicio médico.",
+        startOver: "Empezar de nuevo",
+        back: "Atr\u00e1s",
+        next: "Siguiente",
+        progressLabel: "Pregunta {n} de 9",
         yourScore: "Su puntaje:",
-        resultHint:
-          "Responda las preguntas y toque “Calcular puntaje de riesgo”.",
-        fullDisclaimer:
-          "Este diseño es solo para demostración. No es un dispositivo médico y no debe usarse para tomar decisiones de tratamiento.",
-        riskLow: "Riesgo bajo",
-        riskMedium: "Riesgo moderado",
-        riskHigh: "Riesgo alto",
-        msgLow:
-          "Riesgo estimado bajo de reingreso. Mantenga el apoyo y el seguimiento actual.",
-        msgMedium:
-          "Riesgo estimado moderado. Considere apoyo adicional con medicamentos, transporte o llamadas de seguimiento.",
-        msgHigh:
-          "Riesgo estimado alto. La persona podría beneficiarse de coordinación de cuidados intensiva y seguimiento cercano.",
+        riskLow: "Riesgo bajo", riskMedium: "Riesgo moderado", riskHigh: "Riesgo alto",
+        msgLow: "Riesgo estimado bajo de reingreso. Mantenga el apoyo y el seguimiento actual.",
+        msgMedium: "Riesgo estimado moderado. Considere apoyo adicional con medicamentos, transporte o llamadas de seguimiento.",
+        msgHigh: "Riesgo estimado alto. Considere coordinaci\u00f3n de cuidados intensiva y seguimiento cercano.",
         resourcesTitle: "Recursos locales 211 para usted",
-        resourcesHint:
-          "Responda las preguntas y elija su condado para ver sugerencias 211.",
-        resourcesNote:
-          "Marque 2-1-1 en cualquier momento para ayuda gratuita y confidencial en inglés, español o criollo haitiano."
+        resourcesNote: "Marque 2-1-1 en cualquier momento para ayuda gratuita y confidencial en ingl\u00e9s, espa\u00f1ol o criollo haitiano.",
+        call211: "Llamar al 211 ahora",
+        printSummary: "Imprimir resumen",
+        answerAll: "Por favor responda todas las preguntas.",
+        answeredCount: "contestadas",
+        noRisksFlagged: "No se identificaron riesgos espec\u00edficos en esta evaluaci\u00f3n r\u00e1pida. A\u00fan puede llamar a {name} para ayuda con alimentos, vivienda, salud mental y m\u00e1s.",
+        visitOrCall: "Visite {name} o llame al {phone} para ayuda en vivo.",
+        pleaseAnswer: "Por favor elija una respuesta",
+        needTransport: "Transporte a citas m\u00e9dicas",
+        needTransportDesc: "Pregunte al 211 sobre servicios de transporte, paratransit o ayuda para llegar a citas m\u00e9dicas.",
+        needHousing: "Vivienda y refugio",
+        needHousingDesc: "Pregunte al 211 sobre refugios de emergencia, asistencia de alquiler y programas de estabilidad de vivienda.",
+        needSupport: "Apoyo social y de cuidadores",
+        needSupportDesc: "Pregunte al 211 sobre apoyo a cuidadores, servicios para personas mayores, grupos de apoyo y programas comunitarios.",
+        needLiteracy: "Alfabetizaci\u00f3n en salud y navegaci\u00f3n",
+        needLiteracyDesc: "Diga al 211 que necesita ayuda para entender instrucciones m\u00e9dicas; pueden conectarlo con trabajadores de salud comunitarios o programas educativos.",
+        needMeds: "Manejo de medicamentos",
+        needMedsDesc: "Pregunte al 211 sobre programas de revisi\u00f3n de medicamentos, apoyo farmac\u00e9utico o manejo de casos para ayudar a organizar los medicamentos.",
+        needHighUse: "Uso frecuente de urgencias / hospital",
+        needHighUseDesc: "Mencione que ha estado en urgencias o el hospital varias veces; el 211 puede buscar coordinaci\u00f3n de cuidados, atenci\u00f3n primaria y apoyo de salud mental/conductual.",
+        needSelfMgmt: "Ayuda para manejar la salud en casa",
+        needSelfMgmtDesc: "Diga al 211 que no se siente seguro/a manejando su salud; pregunte sobre programas de visitas a domicilio, l\u00edneas de enfermer\u00eda o manejo de enfermedades.",
+        note211Miami: "211 Miami lo conecta con alimentos, vivienda, salud mental, ayuda financiera y m\u00e1s, las 24 horas.",
+        note211Broward: "211 Broward ofrece alimentos, vivienda, atenci\u00f3n m\u00e9dica, cuidado de ancianos, cuidado infantil, asistencia legal y apoyo de salud mental.",
+        note211PalmBeach: "211 Palm Beach / Treasure Coast lo conecta con servicios sociales y comunitarios locales.",
+        note211Florida: "Florida 211 dirigir\u00e1 su llamada al centro 211 m\u00e1s cercano para ayuda local.",
+        qIns: "\u00bfTiene seguro m\u00e9dico o un plan de salud?",
+        qInsO1: "S\u00ed, a trav\u00e9s de mi trabajo o el Mercado de Seguros",
+        qInsO2: "S\u00ed, Medicare (mayores de 65 a\u00f1os o discapacidad)",
+        qInsO3: "S\u00ed, Medicaid (programa del estado)",
+        qInsO4: "No estoy seguro/a",
+        qInsO5: "No, no tengo seguro",
+        insTrust: "Esto nos ayuda a encontrar los recursos adecuados para usted. Su respuesta es privada y no se compartir\u00e1.",
+        insSkip: "Saltar esta pregunta",
+        insHeadingTeam: "Su equipo de apoyo",
+        insHeadCommercial: "Usted ya tiene una enfermera a quien puede llamar",
+        insHeadMedicare: "Ayuda gratuita de Medicare",
+        insHeadMedicaid: "Ayuda gratuita de su plan Medicaid",
+        insHeadUnsure: "Es posible que tenga apoyo que no conoce",
+        insBodyCommercial: "Su plan de salud tiene un equipo cuyo trabajo es ayudarle a mantenerse bien despu\u00e9s de salir del hospital. Esto est\u00e1 incluido en su plan sin costo adicional.",
+        insBodyMedicare: "Medicare tiene programas gratuitos para ayudarle a mantenerse saludable despu\u00e9s del hospital.",
+        insBodyMedicaid: "Su plan de Medicaid tiene un equipo de cuidado que puede ayudarle a mantenerse saludable. Es gratis.",
+        insBodyUnsure: "Muchas personas tienen seguro o beneficios que no conocen. Vale la pena averiguar \u2014 puede tener un equipo gratuito listo para ayudarle.",
+        insBulletNurse: "Una enfermera a quien llamar con preguntas de salud",
+        insBulletMeds: "Ayuda para entender sus medicamentos",
+        insBulletAppt: "Recordatorios para citas de seguimiento",
+        insBulletDoctors: "Encontrar m\u00e9dicos cerca de usted",
+        insBulletRides: "Transporte al m\u00e9dico",
+        insBulletCareManager: "Un coordinador de cuidados asignado a usted",
+        insBulletCommunity: "Conexi\u00f3n con programas comunitarios",
+        insFlipCard: "Voltee su tarjeta de seguro. Llame al n\u00famero de \"Servicios al Miembro\" en la parte de atr\u00e1s.",
+        insScript: "Diga: \"Acabo de salir del hospital. Quisiera hablar con alguien sobre ayuda para mantenerme saludable.\"",
+        insTime: "Toma unos 5 minutos.",
+        insMedicarePhone: "Llame al 1-800-MEDICARE (1-800-633-4227) \u2014 disponible las 24 horas.",
+        insMedicareMA: "Si tiene un plan como Humana, Aetna o UnitedHealthcare, tambi\u00e9n llame al n\u00famero en su tarjeta de seguro. Pueden tener apoyo adicional.",
+        insMedicaidCall: "Llame al n\u00famero en la parte de atr\u00e1s de su tarjeta de Medicaid y pida \"Manejo de Cuidados.\"",
+        insMedicaidFallback: "Si no est\u00e1 seguro de qu\u00e9 plan tiene, llame a Florida Medicaid al 1-877-254-1055.",
+        insUnsureSteps: "Busque alguna tarjeta de seguro en su billetera, pregunte al departamento de facturaci\u00f3n del hospital, o llame al 211 \u2014 ellos pueden ayudarle a averiguar.",
+        ins211CoverageCheck: "El 211 tambi\u00e9n puede ayudarle a saber si califica para seguro m\u00e9dico gratuito o de bajo costo.",
+        btnCallMemberSvc: "Llamar a Servicios al Miembro",
+        btnCallMedicare: "Llamar al 1-800-MEDICARE",
+        btnCallMedicaid: "Llamar a Florida Medicaid",
+        btnCall211Check: "Llamar al 211 para verificar"
       },
       ht: {
-        title: "Zouti senp pou risk retounen lopital",
-        subtitle:
-          "Repon kèk kesyon pou estime risk pou ou retounen lopital. Zouti sa a se yon tès senp, li pa yon dyagnostik.",
+        title: "Evalyasyon bezwen sosyal apr\u00e8 soti lopital",
+        subtitle: "Repon k\u00e8k kesyon pou idantifye bezwen sosyal ki ka afekte rekiperasyon ou apr\u00e8 ou soti lopital. Zouti sa a se yon t\u00e8s senp, li pa yon dyagnostik.",
+        topDisclaimer: "Zouti sa a se s\u00e8lman pou demonstrasyon ak depistaj. Li pa yon aparey medikal epi li pa dwe ranplase jijman klinik oswa desizyon tretman.",
         languageLabel: "Lang:",
         countyLabel: "Ki kote ou rete?",
         q1: "Konbyen medikaman diferan ou pran chak jou?",
-        q1o1: "0–3 medikaman",
-        q1o2: "4–6 medikaman",
-        q1o3: "7 oswa plis medikaman",
-        q2: "Èske ou gen difikilte pou li oswa konprann enfòmasyon sou sante ki ekri?",
-        q2o1: "Non, mwen konprann yo byen",
-        q2o2: "Pafwa",
-        q2o3: "Wi, mwen souvan gen difikilte",
+        q1o1: "0\u20133 medikaman", q1o2: "4\u20136 medikaman", q1o3: "7 oswa plis medikaman",
+        q2: "\u00c8ske ou gen difikilte pou li oswa konprann enf\u00f2masyon sou sante ki ekri?",
+        q2o1: "Non, mwen konprann yo byen", q2o2: "Pafwa", q2o3: "Wi, mwen souvan gen difikilte",
         q3: "Konbyen fwa ou rate medikaman oswa randevou medikal yo?",
-        q3o1: "Pratikman pa janm",
-        q3o2: "Pafwa",
-        q3o3: "Souvan",
+        q3o1: "Pratikman pa janm", q3o2: "Pafwa", q3o3: "Souvan",
         q4: "Ki jan li fasil pou ou ale klinik, lopital oswa famasi a?",
-        q4o1: "Trè fasil",
-        q4o2: "Pafwa difisil",
-        q4o3: "Trè difisil / Mwen souvan pa ka ale",
+        q4o1: "Tr\u00e8 fasil", q4o2: "Pafwa difisil", q4o3: "Tr\u00e8 difisil / Mwen souvan pa ka ale",
         q5: "Ki moun ki ede w ak swen sante ou lakay?",
-        q5o1: "Gwo sipò (fanmi, zanmi, moun kap bay swen)",
-        q5o2: "Gen kèk sipò",
-        q5o3: "Ti kras oswa pa gen sipò ditou",
-        q6: "Nan 6 dènye mwa yo, konbyen fwa ou te ale ijans oswa te entène lopital?",
-        q6o1: "0 fwa",
-        q6o2: "1–2 fwa",
-        q6o3: "3 fwa oswa plis",
-        q7: "Èske ou gen yon kote ki estab pou rete?",
-        q7o1: "Wi, lojman mwen estab",
-        q7o2: "Pafwa mwen pa fin sèten",
-        q7o3: "Non, lojman an pa estab oswa mwen san kay",
+        q5o1: "Gwo sip\u00f2 (fanmi, zanmi, moun kap bay swen)", q5o2: "Gen k\u00e8k sip\u00f2", q5o3: "Ti kras oswa pa gen sip\u00f2 ditou",
+        q6: "Nan 6 d\u00e8nye mwa yo, konbyen fwa ou te ale ijans oswa te ent\u00e8ne lopital?",
+        q6o1: "0 fwa", q6o2: "1\u20132 fwa", q6o3: "3 fwa oswa plis",
+        q7: "\u00c8ske ou gen yon kote ki estab pou rete?",
+        q7o1: "Wi, lojman mwen estab", q7o2: "Pafwa mwen pa fin s\u00e8ten", q7o3: "Non, lojman an pa estab oswa mwen san kay",
         q8: "Ki jan ou santi ou konfyans pou jere sante ou lakay ou?",
-        q8o1: "Trè konfyans",
-        q8o2: "Yon ti jan konfyans",
-        q8o3: "Pa konfyans ditou",
-        calculate: "Kalkile nòt risk la",
-        miniNote:
-          "Sa a se yon zouti depistaj senp, li pa ranplase jijman medikal.",
-        yourScore: "Nòt ou:",
-        resultHint:
-          "Reponn kesyon yo epi peze “Kalkile nòt risk la”.",
-        fullDisclaimer:
-          "Modèl sa a se sèlman pou demonstrasyon. Li pa yon aparèy medikal epi yo pa dwe sèvi avè l pou pran desizyon tretman.",
-        riskLow: "Risk ba",
-        riskMedium: "Risk mwayen",
-        riskHigh: "Gwo risk",
-        msgLow:
-          "Risk retounen lopital la parèt ba. Kontinye ak sipò ak swivi ou genyen an.",
-        msgMedium:
-          "Risk la sanble mwayen. Panse pou bay plis sipò pou medikaman, transpò oswa apèl swivi.",
-        msgHigh:
-          "Risk la sanble wo. Moun nan ka benefisye de bon kowòdinasyon swen ak swivi sere.",
+        q8o1: "Tr\u00e8 konfyans", q8o2: "Yon ti jan konfyans", q8o3: "Pa konfyans ditou",
+        calculate: "Kalkile n\u00f2t risk la",
+        startOver: "Rek\u00f2manse",
+        back: "Tounen",
+        next: "Swivan",
+        progressLabel: "Kesyon {n} sou 9",
+        yourScore: "N\u00f2t ou:",
+        riskLow: "Risk ba", riskMedium: "Risk mwayen", riskHigh: "Gwo risk",
+        msgLow: "Risk retounen lopital la par\u00e8t ba. Kontinye ak sip\u00f2 ak swivi ou genyen an.",
+        msgMedium: "Risk la sanble mwayen. Panse pou bay plis sip\u00f2 pou medikaman, transp\u00f2 oswa ap\u00e8l swivi.",
+        msgHigh: "Risk la sanble wo. Konsidere bon kow\u00f2dinasyon swen ak swivi sere.",
         resourcesTitle: "Resous lokal 211 pou ou",
-        resourcesHint:
-          "Reponn kesyon yo epi chwazi konte w la pou wè sijesyon 211.",
-        resourcesNote:
-          "Rele 2-1-1 nenpòt lè pou jwenn èd gratis, konfidansyèl nan anglè, panyòl oswa kreyòl ayisyen."
+        resourcesNote: "Rele 2-1-1 nenp\u00f2t l\u00e8 pou jwenn \u00e8d gratis, konfidansy\u00e8l nan angl\u00e8, pany\u00f2l oswa krey\u00f2l ayisyen.",
+        call211: "Rele 211 kounye a",
+        printSummary: "Enprime rezime",
+        answerAll: "Tanpri reponn tout kesyon yo.",
+        answeredCount: "reponn",
+        noRisksFlagged: "Pa gen risk espesifik yo jwenn nan depistaj rapid sa a. Ou ka toujou rele {name} pou \u00e8d ak manje, lojman, sante mantal, ak plis ank\u00f2.",
+        visitOrCall: "Vizite {name} oswa rele {phone} pou \u00e8d an dirèk.",
+        pleaseAnswer: "Tanpri chwazi yon repons",
+        needTransport: "Transp\u00f2 pou ale nan swen",
+        needTransportDesc: "Mande 211 sou s\u00e8vis transp\u00f2, paratransit, oswa \u00e8d pou ale nan randevou medikal.",
+        needHousing: "Lojman ak abri",
+        needHousingDesc: "Mande 211 sou abri ijan, asistans lwaye, ak pwogram estabilite lojman.",
+        needSupport: "Sip\u00f2 sosyal ak moun kap bay swen",
+        needSupportDesc: "Mande 211 sou sip\u00f2 pou moun kap bay swen, s\u00e8vis pou granmoun aje, gwoup sip\u00f2, ak pwogram kominot\u00e8.",
+        needLiteracy: "Konpreyansyon sante ak navigasyon",
+        needLiteracyDesc: "Di 211 ou bezwen \u00e8d pou konprann enstriksyon medikal; yo ka konekte ou ak travay\u00e8 sante kominot\u00e8 oswa pwogram edikasyon.",
+        needMeds: "Jesyon medikaman",
+        needMedsDesc: "Mande 211 sou pwogram revizyon medikaman, sip\u00f2 famasi, oswa jesyon ka pou ede \u00f2ganize medikaman yo.",
+        needHighUse: "Itilizasyon frekant ijan / lopital",
+        needHighUseDesc: "Mansyone ke ou te ale nan ijan oswa lopital plizy\u00e8 fwa; 211 ka chache kow\u00f2dinasyon swen, swen prim\u00e8, ak sip\u00f2 sante mantal/konp\u00f2tmantal.",
+        needSelfMgmt: "\u00c8d pou jere sante lakay",
+        needSelfMgmtDesc: "Di 211 ou pa santi ou konfyans pou jere sante ou; mande sou pwogram vizit lakay, liy enfimye, oswa jesyon maladi.",
+        note211Miami: "211 Miami konekte ou ak manje, lojman, sante mantal, \u00e8d finans ak plis ank\u00f2, 24/7.",
+        note211Broward: "211 Broward of\u00e8 manje, lojman, swen sante, swen granmoun aje, swen timoun, \u00e8d legal, ak sip\u00f2 sante mantal.",
+        note211PalmBeach: "211 Palm Beach / Treasure Coast konekte ou ak s\u00e8vis sosyal ak kominot\u00e8 lokal.",
+        note211Florida: "Florida 211 ap dirije ap\u00e8l ou a nan sant 211 ki pi pre pou \u00e8d lokal.",
+        qIns: "\u00c8ske ou gen asirans sante oswa yon plan sante?",
+        qInsO1: "Wi, nan travay mwen oswa Marketplace la",
+        qInsO2: "Wi, Medicare (laj 65+ oswa andikap)",
+        qInsO3: "Wi, Medicaid (pwogram leta)",
+        qInsO4: "Mwen pa s\u00e8ten",
+        qInsO5: "Non, mwen pa gen asirans",
+        insTrust: "Sa ede nou jwenn bon res\u00f2s pou ou. Repons ou a prive epi yo p ap pataje l.",
+        insSkip: "Sote kesyon sa a",
+        insHeadingTeam: "Ekip sip\u00f2 ou",
+        insHeadCommercial: "Ou deja gen yon enfimy\u00e8 ou ka rele",
+        insHeadMedicare: "\u00c8d gratis nan Medicare",
+        insHeadMedicaid: "\u00c8d gratis nan plan Medicaid ou",
+        insHeadUnsure: "Ou ka gen sip\u00f2 ou pa konnen",
+        insBodyCommercial: "Plan sante ou gen yon ekip ki travay pou ede ou rete an sante apr\u00e8 ou soti lopital. Sa enkli nan plan ou san okenn fr\u00e8 siplemant\u00e8.",
+        insBodyMedicare: "Medicare gen pwogram gratis pou ede ou rete an sante apr\u00e8 lopital.",
+        insBodyMedicaid: "Plan Medicaid ou gen yon ekip swen ki ka ede ou rete an sante. Li gratis.",
+        insBodyUnsure: "Anpil moun gen asirans oswa benefis yo pa konnen. Li v\u00f2 la p\u00e8n tcheke \u2014 ou ka gen yon ekip gratis ki pare pou ede ou.",
+        insBulletNurse: "Yon enfimy\u00e8 ou ka rele ak kesyon sante",
+        insBulletMeds: "\u00c8d pou konprann medikaman ou yo",
+        insBulletAppt: "Rap\u00e8l pou randevou swivi",
+        insBulletDoctors: "Jwenn dokt\u00e8 tou pre ou",
+        insBulletRides: "Transp\u00f2 pou ale kay dokt\u00e8",
+        insBulletCareManager: "Yon manadjè swen ki asiyen pou ou",
+        insBulletCommunity: "Koneksyon ak pwogram kominot\u00e8",
+        insFlipCard: "Vire kat asirans ou. Rele nimewo \"S\u00e8vis Manm\" ki d\u00e8y\u00e8 a.",
+        insScript: "Di: \"Mwen f\u00e8k soti lopital. Mwen ta renmen pale ak yon moun sou \u00e8d pou rete an sante.\"",
+        insTime: "Sa pran anviwon 5 minit.",
+        insMedicarePhone: "Rele 1-800-MEDICARE (1-800-633-4227) \u2014 disponib 24 \u00e8 sou 24.",
+        insMedicareMA: "Si ou gen yon plan tankou Humana, Aetna, oswa UnitedHealthcare, rele nimewo ki sou kat asirans ou tou. Yo ka gen sip\u00f2 siplemant\u00e8.",
+        insMedicaidCall: "Rele nimewo ki d\u00e8y\u00e8 kat Medicaid ou epi mande \"Jesyon Swen.\"",
+        insMedicaidFallback: "Si ou pa s\u00e8ten ki plan ou genyen, rele Florida Medicaid nan 1-877-254-1055.",
+        insUnsureSteps: "Chache yon kat asirans nan b\u00f2s ou, mande depatman faktirasyon lopital la, oswa rele 211 \u2014 yo ka ede ou jwenn.",
+        ins211CoverageCheck: "211 ka ede ou tou pou konnen si ou kalifye pou asirans sante gratis oswa bon mache.",
+        btnCallMemberSvc: "Rele S\u00e8vis Manm",
+        btnCallMedicare: "Rele 1-800-MEDICARE",
+        btnCallMedicaid: "Rele Florida Medicaid",
+        btnCall211Check: "Rele 211 pou tcheke"
       }
     };
 
+    /* ============================================================
+       DOM references
+       ============================================================ */
     const langSelect = document.getElementById("language");
     const countySelect = document.getElementById("county");
     const scoreValueEl = document.getElementById("score-value");
     const riskLabelEl = document.getElementById("risk-label");
     const riskPillEl = document.getElementById("risk-pill");
+    const riskIconEl = document.getElementById("risk-icon");
     const riskMessageEl = document.getElementById("risk-message");
     const resourcesMetaEl = document.getElementById("resources-meta");
     const resourceListEl = document.getElementById("resource-list");
+    const resultSection = document.getElementById("result");
+    const resourcesSection = document.getElementById("resources");
+    const call211Btn = document.getElementById("call-211-btn");
 
-    function applyLanguage(lang) {
-      const strings = i18n[lang] || i18n.en;
-      document
-        .querySelectorAll("[data-i18n]")
-        .forEach((el) => {
-          const key = el.getAttribute("data-i18n");
-          if (strings[key]) {
-            el.textContent = strings[key];
-          }
-        });
+    /* ============================================================
+       Lightweight anonymous analytics (no PII, no cookies)
+       Sends a single beacon per event — works even if page closes.
+       Falls back silently if no endpoint is configured.
+       ============================================================ */
+    const ANALYTICS_ENDPOINT = ""; // Set to your endpoint URL when ready, e.g. "/api/events"
+    function trackEvent(name, data) {
+      if (!ANALYTICS_ENDPOINT) return;
+      var payload = JSON.stringify({
+        event: name,
+        ts: new Date().toISOString(),
+        lang: langSelect.value,
+        county: countySelect.value,
+        data: data || {}
+      });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(ANALYTICS_ENDPOINT, payload);
+      }
     }
 
-    langSelect.addEventListener("change", (e) => {
+    /* ============================================================
+       i18n application
+       ============================================================ */
+    function applyLanguage(lang) {
+      var strings = i18n[lang] || i18n.en;
+      document.documentElement.lang = lang;
+      document.title = strings.title;
+      document.querySelectorAll("[data-i18n]").forEach(function(el) {
+        var key = el.getAttribute("data-i18n");
+        if (strings[key]) {
+          el.textContent = strings[key];
+        }
+      });
+    }
+
+    langSelect.addEventListener("change", function(e) {
       applyLanguage(e.target.value);
+      updateProgressLabel();
+      trackEvent("language_change");
     });
 
-    function get211Profile(county) {
-      // Static description + links based on Florida 211 network and local centers
-      // Miami-Dade/Monroe -> 211 Miami
-      // Broward -> 211 Broward
-      // Palm Beach/Treasure Coast -> 211 Palm Beach
+    /* ============================================================
+       Wizard: one question at a time
+       ============================================================ */
+    var allCards = document.querySelectorAll(".card");
+    var currentStep = 0;
+    var totalSteps = allCards.length; // now 9
+    var progressFill = document.getElementById("progress-fill");
+    var progressLabelEl = document.getElementById("progress-label");
+    var btnBack = document.getElementById("btn-back");
+    var btnNext = document.getElementById("btn-next");
+    var wizardNav = document.getElementById("wizard-nav");
+    var actionsRow = document.getElementById("actions-row");
+    var insuranceSupportEl = document.getElementById("insurance-support");
+
+    // Get the radio name for any card via its data-question attribute
+    function getCardRadioName(step) {
+      return allCards[step].getAttribute("data-question");
+    }
+
+    // Is the insurance question step?
+    function isInsuranceStep(step) {
+      return getCardRadioName(step) === "qIns";
+    }
+
+    function showStep(step) {
+      currentStep = step;
+      allCards.forEach(function(card, i) {
+        card.classList.toggle("active", i === step);
+      });
+      progressFill.style.width = ((step + 1) / totalSteps * 100) + "%";
+      updateProgressLabel();
+
+      // Show/hide nav buttons
+      btnBack.style.visibility = step === 0 ? "hidden" : "visible";
+
+      if (step === totalSteps - 1) {
+        btnNext.style.display = "none";
+        actionsRow.classList.add("visible");
+        wizardNav.style.display = "flex";
+      } else {
+        btnNext.style.display = "";
+        actionsRow.classList.remove("visible");
+        wizardNav.style.display = "flex";
+      }
+    }
+
+    function updateProgressLabel() {
+      var strings = i18n[langSelect.value] || i18n.en;
+      var tmpl = strings.progressLabel || "Question {n} of 9";
+      progressLabelEl.textContent = tmpl.replace("{n}", currentStep + 1);
+    }
+
+    btnBack.addEventListener("click", function() {
+      if (currentStep > 0) showStep(currentStep - 1);
+    });
+
+    btnNext.addEventListener("click", function() {
+      var qName = getCardRadioName(currentStep);
+      // Insurance question is skippable — allow Next without answer
+      if (isInsuranceStep(currentStep)) {
+        if (currentStep < totalSteps - 1) showStep(currentStep + 1);
+        return;
+      }
+      var selected = document.querySelector('input[name="' + qName + '"]:checked');
+      if (!selected) {
+        var card = allCards[currentStep];
+        card.classList.add("unanswered");
+        var existing = card.querySelector(".unanswered-msg");
+        if (!existing) {
+          var strings = i18n[langSelect.value] || i18n.en;
+          var msg = document.createElement("div");
+          msg.className = "unanswered-msg";
+          msg.textContent = strings.pleaseAnswer;
+          card.querySelector(".card-options").appendChild(msg);
+        }
+        return;
+      }
+      if (currentStep < totalSteps - 1) showStep(currentStep + 1);
+    });
+
+    // Skip insurance question button
+    document.getElementById("skip-insurance").addEventListener("click", function() {
+      if (currentStep < totalSteps - 1) showStep(currentStep + 1);
+    });
+
+    // Auto-advance after selecting a radio option
+    document.querySelectorAll('.card-options input[type="radio"]').forEach(function(radio) {
+      radio.addEventListener("change", function() {
+        var card = allCards[currentStep];
+        card.classList.remove("unanswered");
+        var msg = card.querySelector(".unanswered-msg");
+        if (msg) msg.remove();
+
+        if (currentStep < totalSteps - 1) {
+          setTimeout(function() {
+            showStep(currentStep + 1);
+          }, 300);
+        }
+      });
+    });
+
+    // Initialize wizard at step 0
+    showStep(0);
+
+    /* ============================================================
+       211 provider profiles (with i18n note keys)
+       ============================================================ */
+    function get211Profile(county, lang) {
+      var strings = i18n[lang] || i18n.en;
       switch (county) {
         case "miami":
           return {
-            name: "211 Miami",
-            area: "Miami-Dade & Monroe",
-            phone: "Dial 2-1-1 or (305) 631-4211",
+            name: "211 Miami", area: "Miami-Dade & Monroe",
+            phone: "(305) 631-4211", dialLabel: "2-1-1",
+            tel: "tel:+13056314211",
             site: "https://211miami.org",
-            note:
-              "211 Miami connects you to food, housing, mental health, financial help and more, 24/7."
+            note: strings.note211Miami
           };
         case "broward":
           return {
-            name: "211 Broward",
-            area: "Broward County",
-            phone: "Dial 2-1-1 or (954) 537-0211",
+            name: "211 Broward", area: "Broward County",
+            phone: "(954) 537-0211", dialLabel: "2-1-1",
+            tel: "tel:+19545370211",
             site: "https://www.211-broward.org",
-            note:
-              "211 Broward offers food, housing, health care, elder care, child care, legal aid, and mental health support."
+            note: strings.note211Broward
           };
         case "palmbeach":
           return {
-            name: "211 Palm Beach / Treasure Coast",
-            area: "Palm Beach & Treasure Coast",
-            phone: "Dial 2-1-1",
+            name: "211 Palm Beach / Treasure Coast", area: "Palm Beach & Treasure Coast",
+            phone: "2-1-1", dialLabel: "2-1-1",
+            tel: "tel:211",
             site: "https://www.211palmbeach.org",
-            note:
-              "211 Palm Beach / Treasure Coast connects you to local social and community services."
+            note: strings.note211PalmBeach
           };
         default:
           return {
-            name: "Florida 211",
-            area: "South Florida",
-            phone: "Dial 2-1-1",
+            name: "Florida 211", area: "South Florida",
+            phone: "2-1-1", dialLabel: "2-1-1",
+            tel: "tel:211",
             site: "https://fl211.org",
-            note:
-              "Florida 211 will route your call to the nearest 211 center for local help."
+            note: strings.note211Florida
           };
       }
     }
 
+    /* ============================================================
+       Render 211 meta (XSS-safe — no innerHTML)
+       ============================================================ */
     function render211Meta(profile) {
-      resourcesMetaEl.innerHTML =
-        "<strong>" +
-        profile.name +
-        "</strong><br>" +
-        profile.area +
-        "<br>" +
-        profile.phone;
+      resourcesMetaEl.textContent = "";
+      var strong = document.createElement("strong");
+      strong.textContent = profile.name;
+      resourcesMetaEl.appendChild(strong);
+      resourcesMetaEl.appendChild(document.createElement("br"));
+      resourcesMetaEl.appendChild(document.createTextNode(profile.area));
+      resourcesMetaEl.appendChild(document.createElement("br"));
+      var phoneLink = document.createElement("a");
+      phoneLink.href = profile.tel;
+      phoneLink.textContent = profile.phone;
+      resourcesMetaEl.appendChild(phoneLink);
     }
 
-    function buildNeedTags(answers) {
-      const needs = [];
+    /* ============================================================
+       Build need tags (translated, threshold >= 1)
+       ============================================================ */
+    function buildNeedTags(answers, lang) {
+      var strings = i18n[lang] || i18n.en;
+      var needs = [];
 
-      if (answers.q4 === 2) {
-        needs.push({
-          id: "transport",
-          label: "Transportation to care",
-          desc:
-            "Ask 211 about transportation services, paratransit, or help getting to medical appointments."
-        });
+      if (answers.q4 >= 1) {
+        needs.push({ id: "transport", label: strings.needTransport, desc: strings.needTransportDesc });
       }
-
-      if (answers.q7 === 2) {
-        needs.push({
-          id: "housing",
-          label: "Housing & shelter",
-          desc:
-            "Ask 211 about emergency shelters, rental assistance, and housing stability programs."
-        });
+      if (answers.q7 >= 1) {
+        needs.push({ id: "housing", label: strings.needHousing, desc: strings.needHousingDesc });
       }
-
-      if (answers.q5 === 2) {
-        needs.push({
-          id: "support",
-          label: "Social & caregiver support",
-          desc:
-            "Ask 211 about caregiver support, senior services, support groups, and community programs."
-        });
+      if (answers.q5 >= 1) {
+        needs.push({ id: "support", label: strings.needSupport, desc: strings.needSupportDesc });
       }
-
-      if (answers.q2 === 2) {
-        needs.push({
-          id: "literacy",
-          label: "Health literacy & navigation",
-          desc:
-            "Tell 211 you need help understanding medical instructions; they can connect you to community health workers or education programs."
-        });
+      if (answers.q2 >= 1) {
+        needs.push({ id: "literacy", label: strings.needLiteracy, desc: strings.needLiteracyDesc });
       }
-
-      if (answers.q3 === 2 || answers.q1 === 2) {
-        needs.push({
-          id: "meds",
-          label: "Medication management",
-          desc:
-            "Ask 211 about medication review programs, pharmacy support, or case management to help keep medicines organized."
-        });
+      if (answers.q3 >= 1 || answers.q1 >= 1) {
+        needs.push({ id: "meds", label: strings.needMeds, desc: strings.needMedsDesc });
       }
-
-      if (answers.q6 === 2) {
-        needs.push({
-          id: "highUse",
-          label: "Frequent ER / hospital use",
-          desc:
-            "Mention that you have been to the ER or hospital several times; 211 can look for care coordination, primary care, and mental/behavioral health supports."
-        });
+      if (answers.q6 >= 1) {
+        needs.push({ id: "highUse", label: strings.needHighUse, desc: strings.needHighUseDesc });
       }
-
-      if (answers.q8 === 2) {
-        needs.push({
-          id: "selfMgmt",
-          label: "Help managing health at home",
-          desc:
-            "Tell 211 you don’t feel confident managing your health; ask about home visit programs, nurse lines, or disease management."
-        });
+      if (answers.q8 >= 1) {
+        needs.push({ id: "selfMgmt", label: strings.needSelfMgmt, desc: strings.needSelfMgmtDesc });
       }
 
       return needs;
     }
 
+    /* ============================================================
+       Render resources (XSS-safe — no innerHTML)
+       ============================================================ */
     function renderResources(profile, needs, lang, totalScore) {
-      const strings = i18n[lang] || i18n.en;
-
+      var strings = i18n[lang] || i18n.en;
       render211Meta(profile);
-
-      // Clear list
-      resourceListEl.innerHTML = "";
-
-      if (needs.length === 0 && totalScore === null) {
-        const li = document.createElement("li");
-        li.textContent = strings.resourcesHint;
-        resourceListEl.appendChild(li);
-        return;
-      }
+      resourceListEl.textContent = "";
 
       if (needs.length === 0 && totalScore !== null) {
-        const li = document.createElement("li");
-        li.textContent =
-          "No specific risks flagged in this quick screen. You can still call " +
-          profile.name +
-          " for help with food, housing, mental health, and more.";
+        var li = document.createElement("li");
+        li.textContent = strings.noRisksFlagged.replace("{name}", profile.name);
         resourceListEl.appendChild(li);
       }
 
-      needs.forEach((need) => {
-        const li = document.createElement("li");
-        li.innerHTML =
-          "<strong>" +
-          need.label +
-          "</strong>" +
-          '<span class="tag">211</span><br>' +
-          need.desc;
+      needs.forEach(function(need) {
+        var li = document.createElement("li");
+        var strong = document.createElement("strong");
+        strong.textContent = need.label;
+        li.appendChild(strong);
+        var tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = "211";
+        li.appendChild(tag);
+        li.appendChild(document.createElement("br"));
+        li.appendChild(document.createTextNode(need.desc));
         resourceListEl.appendChild(li);
       });
 
-      const liLink = document.createElement("li");
-      liLink.innerHTML =
-        'Visit <a class="resource-link" href="' +
-        profile.site +
-        '" target="_blank" rel="noopener noreferrer">' +
-        profile.name +
-        "</a> or call " +
-        profile.phone +
-        " for live help.";
+      // "Visit / Call" link
+      var liLink = document.createElement("li");
+      var visitText = strings.visitOrCall.split("{name}");
+      liLink.appendChild(document.createTextNode(visitText[0]));
+      var siteLink = document.createElement("a");
+      siteLink.className = "resource-link";
+      siteLink.href = profile.site;
+      siteLink.target = "_blank";
+      siteLink.rel = "noopener noreferrer";
+      siteLink.textContent = profile.name;
+      liLink.appendChild(siteLink);
+      var afterName = (visitText[1] || "").split("{phone}");
+      liLink.appendChild(document.createTextNode(afterName[0]));
+      var phoneLink = document.createElement("a");
+      phoneLink.href = profile.tel;
+      phoneLink.textContent = profile.phone;
+      liLink.appendChild(phoneLink);
+      liLink.appendChild(document.createTextNode(afterName[1] || ""));
       resourceListEl.appendChild(liLink);
+
+      // Update the Call 211 button href
+      call211Btn.href = profile.tel;
     }
 
-    document.getElementById("calculate").addEventListener("click", () => {
-      let total = 0;
-      let answered = 0;
-      const answers = {};
+    /* ============================================================
+       Validation: highlight unanswered cards
+       ============================================================ */
+    function clearValidation() {
+      document.querySelectorAll(".card.unanswered").forEach(function(card) {
+        card.classList.remove("unanswered");
+        var msg = card.querySelector(".unanswered-msg");
+        if (msg) msg.remove();
+      });
+    }
 
-      for (let i = 1; i <= 8; i++) {
-        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+    function highlightUnanswered(lang) {
+      var strings = i18n[lang] || i18n.en;
+      var firstUnanswered = null;
+      for (var i = 1; i <= 8; i++) {
+        var selected = document.querySelector('input[name="q' + i + '"]:checked');
+        if (!selected) {
+          var card = document.querySelector('[data-question="q' + i + '"]');
+          if (card && !card.classList.contains("unanswered")) {
+            card.classList.add("unanswered");
+            var msg = document.createElement("div");
+            msg.className = "unanswered-msg";
+            msg.textContent = strings.pleaseAnswer;
+            card.querySelector(".card-options").appendChild(msg);
+          }
+          if (!firstUnanswered) firstUnanswered = card;
+        }
+      }
+      if (firstUnanswered) {
+        firstUnanswered.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    /* ============================================================
+       Render insurance support card (branched by status)
+       All content built via DOM — no innerHTML / XSS-safe
+       ============================================================ */
+    function renderInsuranceSupport(status, lang, profile) {
+      var s = i18n[lang] || i18n.en;
+      var el = insuranceSupportEl;
+      el.textContent = "";
+
+      // No card for uninsured or skipped — 211 section handles them
+      if (!status || status === "none") {
+        el.style.display = "none";
+        // Add coverage check line to resources for uninsured
+        if (status === "none") {
+          var coverageLi = document.createElement("li");
+          coverageLi.style.fontWeight = "600";
+          coverageLi.textContent = s.ins211CoverageCheck;
+          resourceListEl.appendChild(coverageLi);
+        }
+        return;
+      }
+
+      el.style.display = "";
+
+      // Heading
+      var h3 = document.createElement("h3");
+      var headText = "";
+      if (status === "commercial") headText = s.insHeadCommercial;
+      else if (status === "medicare") headText = s.insHeadMedicare;
+      else if (status === "medicaid") headText = s.insHeadMedicaid;
+      else if (status === "unsure") headText = s.insHeadUnsure;
+      h3.appendChild(document.createTextNode(headText));
+      el.appendChild(h3);
+
+      // Body paragraph
+      var bodyP = document.createElement("p");
+      if (status === "commercial") bodyP.textContent = s.insBodyCommercial;
+      else if (status === "medicare") bodyP.textContent = s.insBodyMedicare;
+      else if (status === "medicaid") bodyP.textContent = s.insBodyMedicaid;
+      else if (status === "unsure") bodyP.textContent = s.insBodyUnsure;
+      el.appendChild(bodyP);
+
+      // Bullet list (varies by type)
+      var ul = document.createElement("ul");
+      var bullets = [];
+      if (status === "commercial") {
+        bullets = [s.insBulletNurse, s.insBulletMeds, s.insBulletAppt, s.insBulletDoctors];
+      } else if (status === "medicare") {
+        bullets = [s.insBulletNurse, s.insBulletMeds, s.insBulletAppt];
+      } else if (status === "medicaid") {
+        bullets = [s.insBulletCareManager, s.insBulletRides, s.insBulletMeds, s.insBulletCommunity];
+      }
+      // "unsure" gets no bullets — just action steps
+      bullets.forEach(function(text) {
+        var li = document.createElement("li");
+        li.textContent = text;
+        ul.appendChild(li);
+      });
+      if (bullets.length) el.appendChild(ul);
+
+      // Action instructions
+      if (status === "commercial") {
+        var howP = document.createElement("p");
+        howP.className = "ins-how";
+        howP.textContent = s.insFlipCard;
+        el.appendChild(howP);
+
+        var scriptDiv = document.createElement("div");
+        scriptDiv.className = "ins-script";
+        scriptDiv.textContent = s.insScript + " " + s.insTime;
+        el.appendChild(scriptDiv);
+
+        var btn = document.createElement("a");
+        btn.className = "call-insurance-btn";
+        btn.href = "tel:";
+        btn.textContent = s.btnCallMemberSvc;
+        btn.addEventListener("click", function() { trackEvent("call_insurance_click", { type: "commercial" }); });
+        el.appendChild(btn);
+
+      } else if (status === "medicare") {
+        var mcP = document.createElement("p");
+        mcP.className = "ins-how";
+        mcP.textContent = s.insMedicarePhone;
+        el.appendChild(mcP);
+
+        var maP = document.createElement("p");
+        maP.textContent = s.insMedicareMA;
+        el.appendChild(maP);
+
+        var scriptDiv2 = document.createElement("div");
+        scriptDiv2.className = "ins-script";
+        scriptDiv2.textContent = s.insScript + " " + s.insTime;
+        el.appendChild(scriptDiv2);
+
+        var btn2 = document.createElement("a");
+        btn2.className = "call-insurance-btn";
+        btn2.href = "tel:+18006334227";
+        btn2.textContent = s.btnCallMedicare;
+        btn2.addEventListener("click", function() { trackEvent("call_insurance_click", { type: "medicare" }); });
+        el.appendChild(btn2);
+
+      } else if (status === "medicaid") {
+        var mdP = document.createElement("p");
+        mdP.className = "ins-how";
+        mdP.textContent = s.insMedicaidCall;
+        el.appendChild(mdP);
+
+        var scriptDiv3 = document.createElement("div");
+        scriptDiv3.className = "ins-script";
+        scriptDiv3.textContent = s.insScript + " " + s.insTime;
+        el.appendChild(scriptDiv3);
+
+        var fbP = document.createElement("p");
+        fbP.textContent = s.insMedicaidFallback;
+        el.appendChild(fbP);
+
+        var btn3 = document.createElement("a");
+        btn3.className = "call-insurance-btn";
+        btn3.href = "tel:+18772541055";
+        btn3.textContent = s.btnCallMedicaid;
+        btn3.addEventListener("click", function() { trackEvent("call_insurance_click", { type: "medicaid" }); });
+        el.appendChild(btn3);
+
+      } else if (status === "unsure") {
+        var stepsP = document.createElement("p");
+        stepsP.textContent = s.insUnsureSteps;
+        el.appendChild(stepsP);
+
+        var btn4 = document.createElement("a");
+        btn4.className = "call-insurance-btn";
+        btn4.href = "tel:211";
+        btn4.textContent = s.btnCall211Check;
+        btn4.addEventListener("click", function() { trackEvent("call_insurance_click", { type: "unsure" }); });
+        el.appendChild(btn4);
+      }
+    }
+
+    /* ============================================================
+       Calculate handler
+       ============================================================ */
+    document.getElementById("calculate").addEventListener("click", function() {
+      clearValidation();
+      var total = 0;
+      var answered = 0;
+      var answers = {};
+
+      // Score only the 8 health questions (q1-q8), skip qIns
+      for (var i = 1; i <= 8; i++) {
+        var selected = document.querySelector('input[name="q' + i + '"]:checked');
         if (selected) {
           answered++;
-          const val = Number(selected.value);
+          var val = Number(selected.value);
           total += val;
           answers["q" + i] = val;
         } else {
@@ -874,59 +1565,116 @@
         }
       }
 
-      const currentLang = langSelect.value;
-      const strings = i18n[currentLang] || i18n.en;
+      // Read insurance status (may be null if skipped)
+      var insEl = document.querySelector('input[name="qIns"]:checked');
+      var insuranceStatus = insEl ? insEl.value : null;
 
-      const county = countySelect.value;
-      const profile = get211Profile(county);
+      var currentLang = langSelect.value;
+      var strings = i18n[currentLang] || i18n.en;
+      var county = countySelect.value;
+      var profile = get211Profile(county, currentLang);
 
       if (answered < 8) {
-        scoreValueEl.textContent = "—";
-        riskLabelEl.textContent = "";
-        riskPillEl.className = "pill";
-        riskMessageEl.textContent =
-          strings.resultHint +
-          " (" +
-          answered +
-          "/8 " +
-          (currentLang === "es"
-            ? "contestadas"
-            : currentLang === "ht"
-            ? "reponn"
-            : "answered") +
-          ")";
-        renderResources(profile, [], currentLang, null);
+        // Navigate to first unanswered health question (skip insurance step)
+        for (var j = 0; j < totalSteps; j++) {
+          var qn = getCardRadioName(j);
+          if (qn === "qIns") continue; // insurance is optional
+          var check = document.querySelector('input[name="' + qn + '"]:checked');
+          if (!check) { showStep(j); break; }
+        }
+        highlightUnanswered(currentLang);
         return;
       }
 
+      // Hide wizard nav, show results
+      wizardNav.style.display = "none";
+      actionsRow.classList.remove("visible");
+
+      // Hide form, show results
+      document.querySelector(".progress-container").style.display = "none";
+      document.querySelector(".cards").style.display = "none";
+      resultSection.style.display = "";
+      resourcesSection.style.display = "";
       scoreValueEl.textContent = total.toString();
 
-      let label, msg, pillClass;
+      var label, msg, pillClass, icon;
       if (total <= 5) {
         label = strings.riskLow;
         msg = strings.msgLow;
         pillClass = "pill pill-low";
+        icon = "\u2713";
       } else if (total <= 11) {
         label = strings.riskMedium;
         msg = strings.msgMedium;
         pillClass = "pill pill-medium";
+        icon = "\u26a0";
       } else {
         label = strings.riskHigh;
         msg = strings.msgHigh;
         pillClass = "pill pill-high";
+        icon = "\u26d4";
       }
 
       riskLabelEl.textContent = label;
       riskPillEl.className = pillClass;
+      riskIconEl.textContent = icon;
       riskMessageEl.textContent = msg;
 
-      const needs = buildNeedTags(answers);
+      var needs = buildNeedTags(answers, currentLang);
       renderResources(profile, needs, currentLang, total);
+
+      // Render insurance support card (branched by status)
+      renderInsuranceSupport(insuranceStatus, currentLang, profile);
+
+      resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      // Analytics
+      trackEvent("screening_complete", {
+        score: total,
+        tier: total <= 5 ? "low" : total <= 11 ? "medium" : "high",
+        needs: needs.map(function(n) { return n.id; }),
+        answered: answered,
+        insuranceStatus: insuranceStatus || "skipped"
+      });
     });
 
-    // Initialize default language & resources
+    /* ============================================================
+       Reset / Start Over
+       ============================================================ */
+    function doReset() {
+      clearValidation();
+      document.getElementById("risk-form").reset();
+      resultSection.style.display = "none";
+      resourcesSection.style.display = "none";
+      insuranceSupportEl.style.display = "none";
+      document.querySelector(".progress-container").style.display = "";
+      document.querySelector(".cards").style.display = "";
+      showStep(0);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      trackEvent("reset");
+    }
+    document.getElementById("reset-btn").addEventListener("click", doReset);
+    document.getElementById("reset-btn-results").addEventListener("click", doReset);
+
+    /* ============================================================
+       Print Summary
+       ============================================================ */
+    document.getElementById("print-btn").addEventListener("click", function() {
+      window.print();
+      trackEvent("print");
+    });
+
+    /* ============================================================
+       Track 211 link clicks
+       ============================================================ */
+    call211Btn.addEventListener("click", function() {
+      trackEvent("call_211_click");
+    });
+
+    /* ============================================================
+       Initialize
+       ============================================================ */
     applyLanguage("en");
-    renderResources(get211Profile(countySelect.value), [], "en", null);
   </script>
 </body>
 </html>
