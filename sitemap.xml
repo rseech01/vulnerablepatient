@@ -1,8 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- ═══ MARKETING / INVESTOR SITE (Cloudflare) ═══ -->
   <url>
     <loc>https://www.vulnerablepatients.com/</loc>
-    <lastmod>2026-03-19</lastmod>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
+
+  <!--
+    Single-page sections (anchors):
+      #solution  — Solution overview + 3 pillars
+      #market    — Market opportunity ($4.7B TAM)
+      #team      — Team bios (Riyaad, Jody, Rachel, Juan)
+
+    Note: Google ignores fragment (#) URLs in sitemaps,
+    so these are documented here for reference only.
+  -->
+
+  <!-- ═══ CLINICAL ASSESSMENT APP (Lovable) ═══ -->
+  <url>
+    <loc>https://app.vulnerablepatients.com/</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
 </urlset>
